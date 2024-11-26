@@ -14,7 +14,7 @@ var MIGRATE_VERSION int64 = 20241125035656
 
 func migrate(db *sql.DB) error {
 	goose.SetBaseFS(embedMigrations)
-	if err := goose.SetDialect("mysql"); err != nil {
+	if err := goose.SetDialect("postgres"); err != nil {
 		return err
 	}
 	version, err := goose.GetDBVersion(db)

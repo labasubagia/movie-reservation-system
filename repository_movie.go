@@ -427,7 +427,7 @@ func (r *MovieRepository) CreateGenre(ctx context.Context, genre *Genre) (int64,
 }
 
 func (r *MovieRepository) UpdateGenreByID(ctx context.Context, ID int64, input GenreInput) error {
-	sql := `update public.genres set name=@name, where id=@id`
+	sql := `update public.genres set name=@name where id=@id`
 	_, err := r.tx.Exec(ctx, sql, pgx.NamedArgs{
 		"id":   ID,
 		"name": input.Name,

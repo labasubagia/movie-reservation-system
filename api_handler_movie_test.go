@@ -15,13 +15,123 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestCreateGenreOK(t *testing.T) {
+	token := testLoginAdmin(t)
+	testCreateGenre(t, token, GenreInput{Name: randomString(5)})
+}
+
+func TestCreateGenreFailDuplicate(t *testing.T) {
+	token := testLoginAdmin(t)
+	input := GenreInput{Name: randomString(5)}
+
+	// success
+	testCreateGenre(t, token, input)
+
+	// fail duplicate
+	_, rec := testCreateGenre(t, token, input)
+	require.Equal(t, http.StatusBadRequest, rec.Code)
+}
+
+func TestUpdateGenreOK(t *testing.T) {
+	token := testLoginAdmin(t)
+	newGenre, rec := testCreateGenre(t, token, GenreInput{Name: randomString(5)})
+	require.Equal(t, http.StatusOK, rec.Code)
+	require.NotNil(t, newGenre)
+
+	input := GenreInput{randomString(4)}
+
+	updated1, rec := testUpdateGenre(t, token, newGenre.ID, input)
+	require.Equal(t, http.StatusOK, rec.Code)
+	require.NotNil(t, updated1)
+	require.Equal(t, newGenre.ID, updated1.ID)
+	require.NotEqual(t, newGenre.Name, updated1.Name)
+
+	updated2, rec := testUpdateGenre(t, token, newGenre.ID, input)
+	require.Equal(t, http.StatusOK, rec.Code)
+	require.NotNil(t, updated1)
+	require.Equal(t, updated1.ID, updated2.ID)
+	require.Equal(t, updated1.Name, updated2.Name)
+}
+
+func TestUpdateGenreFailNotFound(t *testing.T) {
+	token := testLoginAdmin(t)
+
+	updated, rec := testUpdateGenre(t, token, -12, GenreInput{Name: "not_executed"})
+	require.Equal(t, http.StatusNotFound, rec.Code)
+	require.Nil(t, updated)
+}
+
+func TestGetGenreOK(t *testing.T) {
+	token := testLoginAdmin(t)
+	newGenre, rec := testCreateGenre(t, token, GenreInput{Name: randomString(5)})
+	require.Equal(t, http.StatusOK, rec.Code)
+	require.NotNil(t, newGenre)
+
+	cur, rec := testGetGenre(t, token, newGenre.ID)
+	require.Equal(t, http.StatusOK, rec.Code)
+	require.NotNil(t, cur)
+	require.Equal(t, newGenre.Name, cur.Name)
+}
+
+func TestGetGenreFailNotFound(t *testing.T) {
+	token := testLoginAdmin(t)
+
+	cur, rec := testGetGenre(t, token, -12)
+	require.Equal(t, http.StatusNotFound, rec.Code)
+	require.Nil(t, cur)
+}
+
+func TestDeleteGenreOK(t *testing.T) {
+	token := testLoginAdmin(t)
+	newGenre, rec := testCreateGenre(t, token, GenreInput{Name: randomString(5)})
+	require.Equal(t, http.StatusOK, rec.Code)
+	require.NotNil(t, newGenre)
+
+	cur, rec := testDeleteGenre(t, token, newGenre.ID)
+	require.Equal(t, http.StatusOK, rec.Code)
+	require.Nil(t, cur)
+
+	cur, rec = testDeleteGenre(t, token, newGenre.ID)
+	require.Equal(t, http.StatusOK, rec.Code)
+	require.Nil(t, cur)
+}
+
+func TestPaginationGenreOK(t *testing.T) {
+	token := testLoginAdmin(t)
+
+	genreIDs := []int64{}
+	for i := 0; i < 5; i++ {
+		input := GenreInput{
+			Name: randomString(5),
+		}
+		genre, rec := testCreateGenre(t, token, input)
+		require.Equal(t, http.StatusOK, rec.Code)
+		require.NotNil(t, genre)
+
+		genreIDs = append(genreIDs, genre.ID)
+	}
+
+	p, rec := testPaginationGenre(t, token, GenreFilter{IDs: genreIDs}, PaginateInput{1, 2})
+	require.Equal(t, http.StatusOK, rec.Code)
+	require.NotNil(t, p)
+	require.Len(t, p.Items, 2)
+
+	p, rec = testPaginationGenre(t, token, GenreFilter{IDs: genreIDs}, PaginateInput{1, 10})
+	require.Equal(t, http.StatusOK, rec.Code)
+	require.NotNil(t, p)
+	require.Len(t, p.Items, 5)
+}
+
 func TestCreateMovieOK(t *testing.T) {
 	token := testLoginAdmin(t)
 
 	genres := []string{randomString(5), randomString(5)}
 	genreIDs := []int64{}
 	for _, genre := range genres {
-		genre := testCreateGenre(t, token, GenreInput{Name: genre})
+		genre, rec := testCreateGenre(t, token, GenreInput{Name: genre})
+		require.Equal(t, http.StatusOK, rec.Code)
+		require.NotNil(t, genre)
+
 		genreIDs = append(genreIDs, genre.ID)
 	}
 
@@ -44,7 +154,10 @@ func TestUpdateMovieOK(t *testing.T) {
 	genres := []string{randomString(4), randomString(4)}
 	genreIDs := []int64{}
 	for _, genre := range genres {
-		genre := testCreateGenre(t, token, GenreInput{Name: genre})
+		genre, rec := testCreateGenre(t, token, GenreInput{Name: genre})
+		require.Equal(t, http.StatusOK, rec.Code)
+		require.NotNil(t, genre)
+
 		genreIDs = append(genreIDs, genre.ID)
 	}
 
@@ -76,7 +189,10 @@ func TestDeleteMovieOK(t *testing.T) {
 	genres := []string{randomString(4)}
 	genreIDs := []int64{}
 	for _, genre := range genres {
-		genre := testCreateGenre(t, token, GenreInput{Name: genre})
+		genre, rec := testCreateGenre(t, token, GenreInput{Name: genre})
+		require.Equal(t, http.StatusOK, rec.Code)
+		require.NotNil(t, genre)
+
 		genreIDs = append(genreIDs, genre.ID)
 	}
 
@@ -100,7 +216,10 @@ func TestPaginationMovieOK(t *testing.T) {
 	genres := []string{randomString(4)}
 	genreIDs := []int64{}
 	for _, genre := range genres {
-		genre := testCreateGenre(t, token, GenreInput{Name: genre})
+		genre, rec := testCreateGenre(t, token, GenreInput{Name: genre})
+		require.Equal(t, http.StatusOK, rec.Code)
+		require.NotNil(t, genre)
+
 		genreIDs = append(genreIDs, genre.ID)
 	}
 
@@ -132,7 +251,10 @@ func TestGetMovieOK(t *testing.T) {
 	genres := []string{randomString(4)}
 	genreIDs := []int64{}
 	for _, genre := range genres {
-		genre := testCreateGenre(t, token, GenreInput{Name: genre})
+		genre, rec := testCreateGenre(t, token, GenreInput{Name: genre})
+		require.Equal(t, http.StatusOK, rec.Code)
+		require.NotNil(t, genre)
+
 		genreIDs = append(genreIDs, genre.ID)
 	}
 
@@ -153,7 +275,7 @@ func TestGetMovieOK(t *testing.T) {
 
 }
 
-func testCreateGenre(t *testing.T, token string, input GenreInput) *Genre {
+func testCreateGenre(t *testing.T, token string, input GenreInput) (*Genre, *httptest.ResponseRecorder) {
 	p, err := json.Marshal(input)
 	require.NoError(t, err)
 
@@ -171,12 +293,100 @@ func testCreateGenre(t *testing.T, token string, input GenreInput) *Genre {
 	var res Response[*Genre]
 	err = json.Unmarshal(rec.Body.Bytes(), &res)
 	require.NoError(t, err)
-	require.Equal(t, http.StatusOK, rec.Code)
-	require.NotNil(t, res.Data)
 
-	require.Equal(t, input.Name, res.Data.Name)
+	return res.Data, rec
+}
 
-	return res.Data
+func testUpdateGenre(t *testing.T, token string, ID int64, input GenreInput) (*Genre, *httptest.ResponseRecorder) {
+	p, err := json.Marshal(input)
+	require.NoError(t, err)
+
+	e := echo.New()
+
+	req := httptest.NewRequest(http.MethodPut, "/api/admin/genres/:id", bytes.NewReader(p))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	req.Header.Set(echo.HeaderAuthorization, token)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetParamNames("id")
+	c.SetParamValues(strconv.Itoa(int(ID)))
+
+	err = jwtMiddleware(config)(handler.Movie.UpdateGenreByID)(c)
+	require.NoError(t, err)
+
+	var res Response[*Genre]
+	err = json.Unmarshal(rec.Body.Bytes(), &res)
+	require.NoError(t, err)
+
+	return res.Data, rec
+}
+
+func testGetGenre(t *testing.T, token string, ID int64) (*Genre, *httptest.ResponseRecorder) {
+	e := echo.New()
+
+	req := httptest.NewRequest(http.MethodPut, "/api/admin/genres/:id", nil)
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	req.Header.Set(echo.HeaderAuthorization, token)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetParamNames("id")
+	c.SetParamValues(strconv.Itoa(int(ID)))
+
+	err := jwtMiddleware(config)(handler.Movie.GetGenreByID)(c)
+	require.NoError(t, err)
+
+	var res Response[*Genre]
+	err = json.Unmarshal(rec.Body.Bytes(), &res)
+	require.NoError(t, err)
+
+	return res.Data, rec
+}
+
+func testDeleteGenre(t *testing.T, token string, ID int64) (*Genre, *httptest.ResponseRecorder) {
+	e := echo.New()
+
+	req := httptest.NewRequest(http.MethodDelete, "/api/admin/genres/:id", nil)
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	req.Header.Set(echo.HeaderAuthorization, token)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetParamNames("id")
+	c.SetParamValues(strconv.Itoa(int(ID)))
+
+	err := jwtMiddleware(config)(handler.Movie.DeleteGenreByID)(c)
+	require.NoError(t, err)
+
+	var res Response[*Genre]
+	err = json.Unmarshal(rec.Body.Bytes(), &res)
+	require.NoError(t, err)
+
+	return res.Data, rec
+}
+
+func testPaginationGenre(t *testing.T, token string, filter GenreFilter, page PaginateInput) (*Paginate[Genre], *httptest.ResponseRecorder) {
+	p, err := json.Marshal(filter)
+	require.NoError(t, err)
+
+	e := echo.New()
+
+	q := make(url.Values)
+	q.Set("page", strconv.Itoa(int(page.Page)))
+	q.Set("per_page", strconv.Itoa(int(page.Size)))
+
+	req := httptest.NewRequest(http.MethodGet, "/api/admin/genres?"+q.Encode(), bytes.NewReader(p))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	req.Header.Set(echo.HeaderAuthorization, token)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+
+	err = jwtMiddleware(config)(handler.Movie.PaginationGenre)(c)
+	require.NoError(t, err)
+
+	var res Response[*Paginate[Genre]]
+	err = json.Unmarshal(rec.Body.Bytes(), &res)
+	require.NoError(t, err)
+
+	return res.Data, rec
 }
 
 func testCreateMovie(t *testing.T, token string, input MovieInput) *Movie {

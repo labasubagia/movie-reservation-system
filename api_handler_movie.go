@@ -212,6 +212,29 @@ func (h *MovieHandler) DeleteGenreByID(c echo.Context) error {
 	return c.JSON(http.StatusOK, Response[any]{Message: "ok"})
 }
 
+func (h *MovieHandler) GetGenreByID(c echo.Context) error {
+	ctx := c.Request().Context()
+
+	ID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return NewAPIErr(c, NewErr(ErrInput, err, "id invalid"))
+	}
+
+	var genre *Genre
+	err = h.trxProvider.Transact(ctx, func(service *ServiceRegistry) error {
+		genre, err = service.Movie.GetGenreByID(ctx, int64(ID))
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return NewAPIErr(c, err)
+	}
+
+	return c.JSON(http.StatusOK, Response[*Genre]{Message: "ok", Data: genre})
+}
+
 func (h *MovieHandler) PaginationGenre(c echo.Context) error {
 	ctx := c.Request().Context()
 	page := GetPage(c)

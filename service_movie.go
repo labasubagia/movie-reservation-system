@@ -118,6 +118,10 @@ func (s *MovieService) DeleteGenreByID(ctx context.Context, ID int64) error {
 	return nil
 }
 
+func (s *MovieService) GetGenreByID(ctx context.Context, ID int64) (*Genre, error) {
+	return s.repo.Movie.FindOneGenre(ctx, GenreFilter{IDs: []int64{ID}})
+}
+
 func (s *MovieService) PaginationGenre(ctx context.Context, filter GenreFilter, page PaginateInput) (*Paginate[Genre], error) {
 	err := filter.Validate()
 	if err != nil {

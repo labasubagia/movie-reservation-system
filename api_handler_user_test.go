@@ -14,7 +14,7 @@ import (
 
 func TestRegisterUserOK(t *testing.T) {
 	input := UserInput{
-		Email:    "user_for_register@gmail.com",
+		Email:    fmt.Sprintf("%s@mail.com", randomString(3)),
 		Password: "12345678",
 	}
 	testRegisterUser(t, input)
@@ -22,7 +22,7 @@ func TestRegisterUserOK(t *testing.T) {
 
 func TestLoginUserOK(t *testing.T) {
 	input := UserInput{
-		Email:    "user_for_login@gmail.com",
+		Email:    fmt.Sprintf("%s@mail.com", randomString(3)),
 		Password: "12345678",
 	}
 
@@ -60,6 +60,15 @@ func testRegisterUser(t *testing.T, input UserInput) *User {
 	return res.Data
 }
 
+func testLoginAdmin(t *testing.T) (token string) {
+	// this data is from migration seed
+	input := UserInput{
+		Email:    "admin@gmail.com",
+		Password: "12345678",
+	}
+	return testLoginUser(t, input)
+}
+
 func testLoginUser(t *testing.T, input UserInput) (token string) {
 	p, err := json.Marshal(input)
 	require.NoError(t, err)
@@ -73,13 +82,13 @@ func testLoginUser(t *testing.T, input UserInput) (token string) {
 	err = handler.User.Login(c)
 	require.NoError(t, err)
 
-	var resLogin Response[map[string]string]
-	err = json.Unmarshal(rec.Body.Bytes(), &resLogin)
+	var res Response[map[string]string]
+	err = json.Unmarshal(rec.Body.Bytes(), &res)
 	require.NoError(t, err)
 
 	require.Equal(t, http.StatusOK, rec.Code)
-	require.NotEmpty(t, resLogin.Data["token"])
-	token = fmt.Sprintf("Bearer %s", resLogin.Data["token"])
+	require.NotEmpty(t, res.Data["token"])
+	token = fmt.Sprintf("Bearer %s", res.Data["token"])
 	return token
 }
 

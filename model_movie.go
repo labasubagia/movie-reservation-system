@@ -104,7 +104,40 @@ type Movie struct {
 	Genres   []string `json:"genres"`
 }
 
-type Genre struct {
-	ID   int64  `json:"id"`
+type GenreFilter struct {
+	IDs   []int64  `json:"ids"`
+	Names []string `json:"names"`
+}
+
+func (i *GenreFilter) Validate() error {
+	return nil
+}
+
+type GenreInput struct {
 	Name string `json:"name"`
+}
+
+func (i *GenreInput) Validate() error {
+	i.Name = strings.Trim(i.Name, " ")
+	if i.Name == "" {
+		return NewErr(ErrInput, nil, "name is required")
+	}
+	i.Name = strings.ToLower(i.Name)
+	return nil
+}
+
+func NewGenre(input GenreInput) (*Genre, error) {
+	err := input.Validate()
+	if err != nil {
+		return nil, err
+	}
+	genre := Genre{Name: input.Name}
+	return &genre, nil
+}
+
+type Genre struct {
+	ID        int64     `json:"id"`
+	Name      string    `json:"name"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }

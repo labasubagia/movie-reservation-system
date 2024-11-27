@@ -29,7 +29,13 @@ func Route(e *echo.Echo, config *Config, handler *HandlerRegistry) {
 	{
 		admin.PUT("/user/:id", handler.User.ChangeRoleByID)
 
+		admin.GET("/genres", handler.Movie.PaginationGenre)
+		admin.POST("/genres", handler.Movie.CreateGenre)
+		admin.PUT("/genres/:id", handler.Movie.UpdateGenreByID)
+		admin.DELETE("/genres/:id", handler.Movie.DeleteGenreByID)
+
 		admin.GET("/movies", handler.Movie.Pagination)
+		admin.GET("/movies/:id", handler.Movie.GetByID)
 		admin.POST("/movies", handler.Movie.Create)
 		admin.PUT("/movies/:id", handler.Movie.UpdateByID)
 		admin.DELETE("/movies/:id", handler.Movie.DeleteByID)

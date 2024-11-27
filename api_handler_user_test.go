@@ -17,7 +17,9 @@ func TestRegisterUserOK(t *testing.T) {
 		Email:    fmt.Sprintf("%s@mail.com", randomString(3)),
 		Password: "12345678",
 	}
-	testRegisterUser(t, input)
+	newUser, rec := testRegisterUser(t, input)
+	require.Equal(t, http.StatusOK, rec.Code)
+	require.Equal(t, input.Email, newUser.Email)
 }
 
 func TestRegisterUserFailDuplicate(t *testing.T) {
@@ -27,17 +29,12 @@ func TestRegisterUserFailDuplicate(t *testing.T) {
 	}
 
 	// success
-	testRegisterUser(t, input)
+	newUser, rec := testRegisterUser(t, input)
+	require.Equal(t, http.StatusOK, rec.Code)
+	require.Equal(t, input.Email, newUser.Email)
 
 	// fail duplicate
-	e := echo.New()
-	p, err := json.Marshal(input)
-	require.NoError(t, err)
-	req := httptest.NewRequest(http.MethodPost, "/api/register", bytes.NewReader(p))
-	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-	handler.User.Register(c)
+	_, rec = testRegisterUser(t, input)
 	require.Equal(t, http.StatusBadRequest, rec.Code)
 }
 
@@ -47,12 +44,16 @@ func TestLoginUserOK(t *testing.T) {
 		Password: "12345678",
 	}
 
-	newUser := testRegisterUser(t, input)
+	newUser, rec := testRegisterUser(t, input)
+	require.Equal(t, http.StatusOK, rec.Code)
+	require.Equal(t, input.Email, newUser.Email)
 
-	token := testLoginUser(t, UserInput{
+	token, rec := testLoginUser(t, UserInput{
 		Email:    newUser.Email,
 		Password: input.Password,
 	})
+	require.NotEqual(t, token, "")
+	require.Equal(t, http.StatusOK, rec.Code)
 
 	cur := testCurrentUser(t, token)
 	require.Equal(t, newUser.Email, cur.Email)
@@ -63,21 +64,11 @@ func TestLoginUserFail(t *testing.T) {
 		Email:    fmt.Sprintf("%s@mail.com", randomString(3)),
 		Password: "12345678",
 	}
-
-	p, err := json.Marshal(input)
-	require.NoError(t, err)
-
-	e := echo.New()
-	req := httptest.NewRequest(http.MethodPost, "/api/login", bytes.NewReader(p))
-	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-
-	handler.User.Login(c)
+	_, rec := testLoginUser(t, input)
 	require.Equal(t, http.StatusBadRequest, rec.Code)
 }
 
-func testRegisterUser(t *testing.T, input UserInput) *User {
+func testRegisterUser(t *testing.T, input UserInput) (*User, *httptest.ResponseRecorder) {
 	p, err := json.Marshal(input)
 	require.NoError(t, err)
 
@@ -94,10 +85,7 @@ func testRegisterUser(t *testing.T, input UserInput) *User {
 	err = json.Unmarshal(rec.Body.Bytes(), &res)
 	require.NoError(t, err)
 
-	require.Equal(t, http.StatusOK, rec.Code)
-	require.Equal(t, input.Email, res.Data.Email)
-
-	return res.Data
+	return res.Data, rec
 }
 
 func testLoginAdmin(t *testing.T) (token string) {
@@ -106,10 +94,13 @@ func testLoginAdmin(t *testing.T) (token string) {
 		Email:    "admin@gmail.com",
 		Password: "12345678",
 	}
-	return testLoginUser(t, input)
+	token, rec := testLoginUser(t, input)
+	require.Equal(t, http.StatusOK, rec.Code)
+
+	return token
 }
 
-func testLoginUser(t *testing.T, input UserInput) (token string) {
+func testLoginUser(t *testing.T, input UserInput) (token string, recorder *httptest.ResponseRecorder) {
 	p, err := json.Marshal(input)
 	require.NoError(t, err)
 
@@ -126,10 +117,13 @@ func testLoginUser(t *testing.T, input UserInput) (token string) {
 	err = json.Unmarshal(rec.Body.Bytes(), &res)
 	require.NoError(t, err)
 
-	require.Equal(t, http.StatusOK, rec.Code)
+	_, ok := res.Data["token"]
+	if !ok {
+		return "", rec
+	}
 	require.NotEmpty(t, res.Data["token"])
 	token = fmt.Sprintf("Bearer %s", res.Data["token"])
-	return token
+	return token, rec
 }
 
 func testCurrentUser(t *testing.T, token string) *User {

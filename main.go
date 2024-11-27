@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 )
 
@@ -10,7 +11,15 @@ func main() {
 
 	config := NewConfig()
 
-	pool, err := NewDBPool(ctx, config)
+	dsn := fmt.Sprintf(
+		"postgres://%s:%s@%s:%d/%s",
+		config.PostgresUser,
+		config.PostgresPassword,
+		config.PostgresHost,
+		config.PostgresPort,
+		config.PostgresDB,
+	)
+	pool, err := NewDBPool(ctx, dsn)
 	if err != nil {
 		log.Fatal(err)
 	}

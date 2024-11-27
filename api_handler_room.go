@@ -41,7 +41,7 @@ func (h *RoomHandler) Create(c echo.Context) error {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, Response{Message: "ok", Data: room})
+	return c.JSON(http.StatusOK, Response[*Room]{Message: "ok", Data: room})
 }
 
 func (h *RoomHandler) UpdateByID(c echo.Context) error {
@@ -70,7 +70,7 @@ func (h *RoomHandler) UpdateByID(c echo.Context) error {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, Response{Message: "ok", Data: room})
+	return c.JSON(http.StatusOK, Response[*Room]{Message: "ok", Data: room})
 }
 
 func (h *RoomHandler) GetByID(c echo.Context) error {
@@ -93,7 +93,7 @@ func (h *RoomHandler) GetByID(c echo.Context) error {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, Response{Message: "ok", Data: room})
+	return c.JSON(http.StatusOK, Response[*Room]{Message: "ok", Data: room})
 }
 
 func (h *RoomHandler) DeleteByID(c echo.Context) error {
@@ -111,7 +111,7 @@ func (h *RoomHandler) DeleteByID(c echo.Context) error {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, Response{Message: "ok"})
+	return c.JSON(http.StatusOK, Response[any]{Message: "ok"})
 }
 
 func (h *RoomHandler) Pagination(c echo.Context) error {
@@ -137,7 +137,7 @@ func (h *RoomHandler) Pagination(c echo.Context) error {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, Response{Message: "ok", Data: res})
+	return c.JSON(http.StatusOK, Response[*Paginate[Room]]{Message: "ok", Data: res})
 }
 
 func (h *RoomHandler) SetSeats(c echo.Context) error {
@@ -166,5 +166,5 @@ func (h *RoomHandler) SetSeats(c echo.Context) error {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, Response{Message: "ok"})
+	return c.JSON(http.StatusOK, Response[any]{Message: "ok"})
 }

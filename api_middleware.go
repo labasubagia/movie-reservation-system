@@ -23,6 +23,6 @@ func adminMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		if role == UserAdmin {
 			return next(c)
 		}
-		return c.JSON(http.StatusUnauthorized, Response{Message: "unauthorized"})
+		return c.JSON(http.StatusUnauthorized, Response[any]{Message: "unauthorized"})
 	}
 }

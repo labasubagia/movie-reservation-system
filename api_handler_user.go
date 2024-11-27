@@ -41,7 +41,7 @@ func (h *UserHandler) Register(c echo.Context) error {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, Response{Message: "ok", Data: user})
+	return c.JSON(http.StatusOK, Response[*User]{Message: "ok", Data: user})
 }
 
 func (h *UserHandler) Login(c echo.Context) error {
@@ -66,7 +66,7 @@ func (h *UserHandler) Login(c echo.Context) error {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, Response{Message: "ok", Data: map[string]any{"token": token}})
+	return c.JSON(http.StatusOK, Response[any]{Message: "ok", Data: map[string]string{"token": token}})
 }
 
 func (h *UserHandler) LoggedIn(c echo.Context) error {
@@ -86,7 +86,7 @@ func (h *UserHandler) LoggedIn(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	return c.JSON(http.StatusOK, Response{Message: "ok", Data: user})
+	return c.JSON(http.StatusOK, Response[*User]{Message: "ok", Data: user})
 }
 
 func (h *UserHandler) ChangeRoleByID(c echo.Context) error {
@@ -115,5 +115,5 @@ func (h *UserHandler) ChangeRoleByID(c echo.Context) error {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, Response{Message: "ok", Data: user})
+	return c.JSON(http.StatusOK, Response[*User]{Message: "ok", Data: user})
 }

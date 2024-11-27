@@ -30,10 +30,10 @@ func (h *ReservationHandler) UserCreate(c echo.Context) error {
 	input.UserID = userID
 	c.Set(KeyInput, input)
 
-	var showtime *Reservation
+	var reservation *Reservation
 	var err error
 	err = h.trxProvider.Transact(ctx, func(service *ServiceRegistry) error {
-		showtime, err = service.Reservation.Create(ctx, input)
+		reservation, err = service.Reservation.Create(ctx, input)
 		if err != nil {
 			return err
 		}
@@ -43,7 +43,7 @@ func (h *ReservationHandler) UserCreate(c echo.Context) error {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, Response{Message: "ok", Data: showtime})
+	return c.JSON(http.StatusOK, Response[*Reservation]{Message: "ok", Data: reservation})
 }
 
 func (h *ReservationHandler) UserUpdateByID(c echo.Context) error {
@@ -64,9 +64,9 @@ func (h *ReservationHandler) UserUpdateByID(c echo.Context) error {
 
 	c.Set(KeyInput, input)
 
-	var showtime *Reservation
+	var reservation *Reservation
 	err = h.trxProvider.Transact(ctx, func(service *ServiceRegistry) error {
-		showtime, err = service.Reservation.UserUpdateByID(ctx, userID, int64(ID), input)
+		reservation, err = service.Reservation.UserUpdateByID(ctx, userID, int64(ID), input)
 		if err != nil {
 			return err
 		}
@@ -76,7 +76,7 @@ func (h *ReservationHandler) UserUpdateByID(c echo.Context) error {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, Response{Message: "ok", Data: showtime})
+	return c.JSON(http.StatusOK, Response[*Reservation]{Message: "ok", Data: reservation})
 }
 
 func (h *ReservationHandler) UserGetByID(c echo.Context) error {
@@ -89,9 +89,9 @@ func (h *ReservationHandler) UserGetByID(c echo.Context) error {
 		return NewErr(ErrInput, err, "id invalid")
 	}
 
-	var showtime *Reservation
+	var reservation *Reservation
 	err = h.trxProvider.Transact(ctx, func(service *ServiceRegistry) error {
-		showtime, err = service.Reservation.UserGetByID(ctx, userID, int64(ID))
+		reservation, err = service.Reservation.UserGetByID(ctx, userID, int64(ID))
 		if err != nil {
 			return err
 		}
@@ -101,7 +101,7 @@ func (h *ReservationHandler) UserGetByID(c echo.Context) error {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, Response{Message: "ok", Data: showtime})
+	return c.JSON(http.StatusOK, Response[*Reservation]{Message: "ok", Data: reservation})
 }
 
 func (h *ReservationHandler) UserDeleteByID(c echo.Context) error {
@@ -120,7 +120,7 @@ func (h *ReservationHandler) UserDeleteByID(c echo.Context) error {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, Response{Message: "ok"})
+	return c.JSON(http.StatusOK, Response[any]{Message: "ok"})
 }
 
 func (h *ReservationHandler) UserGetPagination(c echo.Context) error {
@@ -149,5 +149,5 @@ func (h *ReservationHandler) UserGetPagination(c echo.Context) error {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, Response{Message: "ok", Data: res})
+	return c.JSON(http.StatusOK, Response[*Paginate[Reservation]]{Message: "ok", Data: res})
 }

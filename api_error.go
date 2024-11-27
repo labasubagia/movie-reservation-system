@@ -18,7 +18,7 @@ func HTTPErrorHandler(err error, c echo.Context) {
 	}
 
 	if err == nil {
-		c.JSON(http.StatusOK, Response{
+		c.JSON(http.StatusOK, Response[any]{
 			Message: "ok",
 			Data:    output,
 		})
@@ -59,7 +59,7 @@ func HTTPErrorHandler(err error, c echo.Context) {
 		c.Logger().Errorj(logInfo)
 	}
 
-	c.JSON(code, Response{
+	c.JSON(code, Response[any]{
 		Message: msg,
 		Data:    nil,
 	})

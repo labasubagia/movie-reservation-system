@@ -41,7 +41,7 @@ func (h *ShowtimeHandler) Create(c echo.Context) error {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, Response{Message: "ok", Data: showtime})
+	return c.JSON(http.StatusOK, Response[*Showtime]{Message: "ok", Data: showtime})
 }
 
 func (h *ShowtimeHandler) UpdateByID(c echo.Context) error {
@@ -70,7 +70,7 @@ func (h *ShowtimeHandler) UpdateByID(c echo.Context) error {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, Response{Message: "ok", Data: showtime})
+	return c.JSON(http.StatusOK, Response[*Showtime]{Message: "ok", Data: showtime})
 }
 
 func (h *ShowtimeHandler) GetByID(c echo.Context) error {
@@ -93,7 +93,7 @@ func (h *ShowtimeHandler) GetByID(c echo.Context) error {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, Response{Message: "ok", Data: showtime})
+	return c.JSON(http.StatusOK, Response[*Showtime]{Message: "ok", Data: showtime})
 }
 
 func (h *ShowtimeHandler) DeleteByID(c echo.Context) error {
@@ -111,7 +111,7 @@ func (h *ShowtimeHandler) DeleteByID(c echo.Context) error {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, Response{Message: "ok"})
+	return c.JSON(http.StatusOK, Response[*Showtime]{Message: "ok"})
 }
 
 func (h *ShowtimeHandler) Pagination(c echo.Context) error {
@@ -137,7 +137,7 @@ func (h *ShowtimeHandler) Pagination(c echo.Context) error {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, Response{Message: "ok", Data: res})
+	return c.JSON(http.StatusOK, Response[*Paginate[Showtime]]{Message: "ok", Data: res})
 }
 
 func (h *ShowtimeHandler) GetShowtimeSeatByID(c echo.Context) error {
@@ -160,5 +160,5 @@ func (h *ShowtimeHandler) GetShowtimeSeatByID(c echo.Context) error {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, Response{Message: "ok", Data: seats})
+	return c.JSON(http.StatusOK, Response[[]Seat]{Message: "ok", Data: seats})
 }

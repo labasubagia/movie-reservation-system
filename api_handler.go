@@ -5,9 +5,9 @@ const (
 	KeyOutput = "output"
 )
 
-type Response struct {
+type Response[T any] struct {
 	Message string `json:"message,omitempty"`
-	Data    any    `json:"data,omitempty"`
+	Data    T      `json:"data,omitempty"`
 }
 
 type HandlerRegistry struct {

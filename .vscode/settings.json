@@ -11,7 +11,10 @@
         "pressly",
         "regconfig",
         "showtimes",
+        "sslmode",
         "stdlib",
+        "stretchr",
+        "testcontainers",
         "timestamptz",
         "tsquery"
     ]

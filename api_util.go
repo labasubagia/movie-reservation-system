@@ -21,7 +21,13 @@ func GetPage(c echo.Context) PaginateInput {
 }
 
 func GetTokenInfo(c echo.Context) (id int64, email string, role string) {
-	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*JwtCustomClaims)
+	user, ok := c.Get("user").(*jwt.Token)
+	if !ok {
+		return 0, "", ""
+	}
+	claims, ok := user.Claims.(*JwtCustomClaims)
+	if !ok {
+		return 0, "", ""
+	}
 	return claims.ID, claims.Email, claims.Role
 }

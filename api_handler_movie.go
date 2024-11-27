@@ -41,7 +41,7 @@ func (h *MovieHandler) Create(c echo.Context) error {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, Response{Message: "ok", Data: movie})
+	return c.JSON(http.StatusOK, Response[any]{Message: "ok", Data: movie})
 }
 
 func (h *MovieHandler) UpdateByID(c echo.Context) error {
@@ -70,7 +70,7 @@ func (h *MovieHandler) UpdateByID(c echo.Context) error {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, Response{Message: "ok", Data: movie})
+	return c.JSON(http.StatusOK, Response[*Movie]{Message: "ok", Data: movie})
 }
 
 func (h *MovieHandler) DeleteByID(c echo.Context) error {
@@ -88,7 +88,7 @@ func (h *MovieHandler) DeleteByID(c echo.Context) error {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, Response{Message: "ok"})
+	return c.JSON(http.StatusOK, Response[any]{Message: "ok"})
 }
 
 func (h *MovieHandler) Pagination(c echo.Context) error {
@@ -114,5 +114,5 @@ func (h *MovieHandler) Pagination(c echo.Context) error {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, Response{Message: "ok", Data: res})
+	return c.JSON(http.StatusOK, Response[*Paginate[Movie]]{Message: "ok", Data: res})
 }

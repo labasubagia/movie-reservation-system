@@ -20,7 +20,7 @@ func TestRegisterUserOK(t *testing.T) {
 	testRegisterUser(t, input)
 }
 
-func TestLoginUserFailDuplicate(t *testing.T) {
+func TestRegisterUserFailDuplicate(t *testing.T) {
 	input := UserInput{
 		Email:    fmt.Sprintf("%s@mail.com", randomString(3)),
 		Password: "12345678",

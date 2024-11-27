@@ -24,7 +24,7 @@ func (h *UserHandler) Register(c echo.Context) error {
 
 	var input UserInput
 	if err := c.Bind(&input); err != nil {
-		return err
+		return NewAPIErr(c, err)
 	}
 	c.Set(KeyInput, map[string]any{"email": input.Email})
 
@@ -38,7 +38,7 @@ func (h *UserHandler) Register(c echo.Context) error {
 		return nil
 	})
 	if err != nil {
-		return err
+		return NewAPIErr(c, err)
 	}
 
 	return c.JSON(http.StatusOK, Response[*User]{Message: "ok", Data: user})
@@ -49,7 +49,7 @@ func (h *UserHandler) Login(c echo.Context) error {
 
 	var input UserInput
 	if err := c.Bind(&input); err != nil {
-		return err
+		return NewAPIErr(c, err)
 	}
 	c.Set(KeyInput, map[string]any{"email": input.Email})
 
@@ -63,7 +63,7 @@ func (h *UserHandler) Login(c echo.Context) error {
 		return nil
 	})
 	if err != nil {
-		return err
+		return NewAPIErr(c, err)
 	}
 
 	return c.JSON(http.StatusOK, Response[any]{Message: "ok", Data: map[string]string{"token": token}})
@@ -84,7 +84,7 @@ func (h *UserHandler) LoggedIn(c echo.Context) error {
 		return nil
 	})
 	if err != nil {
-		return err
+		return NewAPIErr(c, err)
 	}
 	return c.JSON(http.StatusOK, Response[*User]{Message: "ok", Data: user})
 }
@@ -94,12 +94,12 @@ func (h *UserHandler) ChangeRoleByID(c echo.Context) error {
 
 	ID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		return NewErr(ErrInput, err, "id invalid")
+		return NewAPIErr(c, NewErr(ErrInput, err, "id invalid"))
 	}
 
 	var input UserInput
 	if err := c.Bind(&input); err != nil {
-		return err
+		return NewAPIErr(c, err)
 	}
 	c.Set(KeyInput, input)
 
@@ -112,7 +112,7 @@ func (h *UserHandler) ChangeRoleByID(c echo.Context) error {
 		return nil
 	})
 	if err != nil {
-		return err
+		return NewAPIErr(c, err)
 	}
 
 	return c.JSON(http.StatusOK, Response[*User]{Message: "ok", Data: user})

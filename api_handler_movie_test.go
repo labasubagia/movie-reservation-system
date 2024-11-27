@@ -158,7 +158,6 @@ func testCreateGenre(t *testing.T, token string, input GenreInput) *Genre {
 	require.NoError(t, err)
 
 	e := echo.New()
-	e.HTTPErrorHandler = HTTPErrorHandler
 
 	req := httptest.NewRequest(http.MethodPost, "/api/admin/genres", bytes.NewReader(p))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)

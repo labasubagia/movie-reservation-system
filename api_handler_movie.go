@@ -24,7 +24,7 @@ func (h *MovieHandler) Create(c echo.Context) error {
 
 	var input MovieInput
 	if err := c.Bind(&input); err != nil {
-		return err
+		return NewAPIErr(c, err)
 	}
 	c.Set(KeyInput, input)
 
@@ -38,7 +38,7 @@ func (h *MovieHandler) Create(c echo.Context) error {
 		return nil
 	})
 	if err != nil {
-		return err
+		return NewAPIErr(c, err)
 	}
 
 	return c.JSON(http.StatusOK, Response[any]{Message: "ok", Data: movie})
@@ -49,12 +49,12 @@ func (h *MovieHandler) UpdateByID(c echo.Context) error {
 
 	ID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		return NewErr(ErrInput, err, "id invalid")
+		return NewAPIErr(c, NewErr(ErrInput, err, "id invalid"))
 	}
 
 	var input MovieInput
 	if err := c.Bind(&input); err != nil {
-		return err
+		return NewAPIErr(c, err)
 	}
 	c.Set(KeyInput, input)
 
@@ -67,7 +67,7 @@ func (h *MovieHandler) UpdateByID(c echo.Context) error {
 		return nil
 	})
 	if err != nil {
-		return err
+		return NewAPIErr(c, err)
 	}
 
 	return c.JSON(http.StatusOK, Response[*Movie]{Message: "ok", Data: movie})
@@ -78,14 +78,14 @@ func (h *MovieHandler) DeleteByID(c echo.Context) error {
 
 	ID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		return NewErr(ErrInput, err, "id invalid")
+		return NewAPIErr(c, NewErr(ErrInput, err, "id invalid"))
 	}
 
 	err = h.trxProvider.Transact(ctx, func(service *ServiceRegistry) error {
 		return service.Movie.DeleteByID(ctx, int64(ID))
 	})
 	if err != nil {
-		return err
+		return NewAPIErr(c, err)
 	}
 
 	return c.JSON(http.StatusOK, Response[any]{Message: "ok"})
@@ -96,7 +96,7 @@ func (h *MovieHandler) GetByID(c echo.Context) error {
 
 	ID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		return NewErr(ErrInput, err, "id invalid")
+		return NewAPIErr(c, NewErr(ErrInput, err, "id invalid"))
 	}
 
 	var movie *Movie
@@ -108,7 +108,7 @@ func (h *MovieHandler) GetByID(c echo.Context) error {
 		return nil
 	})
 	if err != nil {
-		return err
+		return NewAPIErr(c, err)
 	}
 
 	return c.JSON(http.StatusOK, Response[*Movie]{Message: "ok", Data: movie})
@@ -120,7 +120,7 @@ func (h *MovieHandler) Pagination(c echo.Context) error {
 
 	var filter MovieFilter
 	if err := c.Bind(&filter); err != nil {
-		return err
+		return NewAPIErr(c, err)
 	}
 	c.Set(KeyInput, filter)
 
@@ -134,7 +134,7 @@ func (h *MovieHandler) Pagination(c echo.Context) error {
 		return nil
 	})
 	if err != nil {
-		return err
+		return NewAPIErr(c, err)
 	}
 
 	return c.JSON(http.StatusOK, Response[*Paginate[Movie]]{Message: "ok", Data: res})
@@ -145,7 +145,7 @@ func (h *MovieHandler) CreateGenre(c echo.Context) error {
 
 	var input GenreInput
 	if err := c.Bind(&input); err != nil {
-		return err
+		return NewAPIErr(c, err)
 	}
 	c.Set(KeyInput, input)
 
@@ -159,7 +159,7 @@ func (h *MovieHandler) CreateGenre(c echo.Context) error {
 		return nil
 	})
 	if err != nil {
-		return err
+		return NewAPIErr(c, err)
 	}
 
 	return c.JSON(http.StatusOK, Response[*Genre]{Message: "ok", Data: genre})
@@ -170,12 +170,12 @@ func (h *MovieHandler) UpdateGenreByID(c echo.Context) error {
 
 	ID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		return NewErr(ErrInput, err, "id invalid")
+		return NewAPIErr(c, NewErr(ErrInput, err, "id invalid"))
 	}
 
 	var input GenreInput
 	if err := c.Bind(&input); err != nil {
-		return err
+		return NewAPIErr(c, err)
 	}
 	c.Set(KeyInput, input)
 
@@ -188,7 +188,7 @@ func (h *MovieHandler) UpdateGenreByID(c echo.Context) error {
 		return nil
 	})
 	if err != nil {
-		return err
+		return NewAPIErr(c, err)
 	}
 
 	return c.JSON(http.StatusOK, Response[*Genre]{Message: "ok", Data: movie})
@@ -199,14 +199,14 @@ func (h *MovieHandler) DeleteGenreByID(c echo.Context) error {
 
 	ID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		return NewErr(ErrInput, err, "id invalid")
+		return NewAPIErr(c, NewErr(ErrInput, err, "id invalid"))
 	}
 
 	err = h.trxProvider.Transact(ctx, func(service *ServiceRegistry) error {
 		return service.Movie.DeleteGenreByID(ctx, int64(ID))
 	})
 	if err != nil {
-		return err
+		return NewAPIErr(c, err)
 	}
 
 	return c.JSON(http.StatusOK, Response[any]{Message: "ok"})
@@ -218,7 +218,7 @@ func (h *MovieHandler) PaginationGenre(c echo.Context) error {
 
 	var filter GenreFilter
 	if err := c.Bind(&filter); err != nil {
-		return err
+		return NewAPIErr(c, err)
 	}
 	c.Set(KeyInput, filter)
 
@@ -232,7 +232,7 @@ func (h *MovieHandler) PaginationGenre(c echo.Context) error {
 		return nil
 	})
 	if err != nil {
-		return err
+		return NewAPIErr(c, err)
 	}
 
 	return c.JSON(http.StatusOK, Response[*Paginate[Genre]]{Message: "ok", Data: res})

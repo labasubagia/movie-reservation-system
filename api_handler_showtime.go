@@ -24,7 +24,7 @@ func (h *ShowtimeHandler) Create(c echo.Context) error {
 
 	var input ShowtimeInput
 	if err := c.Bind(&input); err != nil {
-		return err
+		return NewAPIErr(c, err)
 	}
 	c.Set(KeyInput, input)
 
@@ -38,7 +38,7 @@ func (h *ShowtimeHandler) Create(c echo.Context) error {
 		return nil
 	})
 	if err != nil {
-		return err
+		return NewAPIErr(c, err)
 	}
 
 	return c.JSON(http.StatusOK, Response[*Showtime]{Message: "ok", Data: showtime})
@@ -49,12 +49,12 @@ func (h *ShowtimeHandler) UpdateByID(c echo.Context) error {
 
 	ID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		return NewErr(ErrInput, err, "id invalid")
+		return NewAPIErr(c, NewErr(ErrInput, err, "id invalid"))
 	}
 
 	var input ShowtimeInput
 	if err := c.Bind(&input); err != nil {
-		return err
+		return NewAPIErr(c, err)
 	}
 	c.Set(KeyInput, input)
 
@@ -67,7 +67,7 @@ func (h *ShowtimeHandler) UpdateByID(c echo.Context) error {
 		return nil
 	})
 	if err != nil {
-		return err
+		return NewAPIErr(c, err)
 	}
 
 	return c.JSON(http.StatusOK, Response[*Showtime]{Message: "ok", Data: showtime})
@@ -78,7 +78,7 @@ func (h *ShowtimeHandler) GetByID(c echo.Context) error {
 
 	ID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		return NewErr(ErrInput, err, "id invalid")
+		return NewAPIErr(c, NewErr(ErrInput, err, "id invalid"))
 	}
 
 	var showtime *Showtime
@@ -90,7 +90,7 @@ func (h *ShowtimeHandler) GetByID(c echo.Context) error {
 		return nil
 	})
 	if err != nil {
-		return err
+		return NewAPIErr(c, err)
 	}
 
 	return c.JSON(http.StatusOK, Response[*Showtime]{Message: "ok", Data: showtime})
@@ -101,14 +101,14 @@ func (h *ShowtimeHandler) DeleteByID(c echo.Context) error {
 
 	ID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		return NewErr(ErrInput, err, "id invalid")
+		return NewAPIErr(c, NewErr(ErrInput, err, "id invalid"))
 	}
 
 	err = h.trxProvider.Transact(ctx, func(service *ServiceRegistry) error {
 		return service.Showtime.DeleteByID(ctx, int64(ID))
 	})
 	if err != nil {
-		return err
+		return NewAPIErr(c, err)
 	}
 
 	return c.JSON(http.StatusOK, Response[*Showtime]{Message: "ok"})
@@ -120,7 +120,7 @@ func (h *ShowtimeHandler) Pagination(c echo.Context) error {
 
 	var filter ShowtimeFilter
 	if err := c.Bind(&filter); err != nil {
-		return err
+		return NewAPIErr(c, err)
 	}
 	c.Set(KeyInput, filter)
 
@@ -134,7 +134,7 @@ func (h *ShowtimeHandler) Pagination(c echo.Context) error {
 		return nil
 	})
 	if err != nil {
-		return err
+		return NewAPIErr(c, err)
 	}
 
 	return c.JSON(http.StatusOK, Response[*Paginate[Showtime]]{Message: "ok", Data: res})
@@ -145,7 +145,7 @@ func (h *ShowtimeHandler) GetShowtimeSeatByID(c echo.Context) error {
 
 	ID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		return NewErr(ErrInput, err, "id invalid")
+		return NewAPIErr(c, NewErr(ErrInput, err, "id invalid"))
 	}
 
 	var seats []Seat
@@ -157,7 +157,7 @@ func (h *ShowtimeHandler) GetShowtimeSeatByID(c echo.Context) error {
 		return nil
 	})
 	if err != nil {
-		return err
+		return NewAPIErr(c, err)
 	}
 
 	return c.JSON(http.StatusOK, Response[[]Seat]{Message: "ok", Data: seats})

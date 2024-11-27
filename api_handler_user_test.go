@@ -20,6 +20,27 @@ func TestRegisterUserOK(t *testing.T) {
 	testRegisterUser(t, input)
 }
 
+func TestLoginUserFailDuplicate(t *testing.T) {
+	input := UserInput{
+		Email:    fmt.Sprintf("%s@mail.com", randomString(3)),
+		Password: "12345678",
+	}
+
+	// success
+	testRegisterUser(t, input)
+
+	// fail duplicate
+	e := echo.New()
+	p, err := json.Marshal(input)
+	require.NoError(t, err)
+	req := httptest.NewRequest(http.MethodPost, "/api/register", bytes.NewReader(p))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	handler.User.Register(c)
+	require.Equal(t, http.StatusBadRequest, rec.Code)
+}
+
 func TestLoginUserOK(t *testing.T) {
 	input := UserInput{
 		Email:    fmt.Sprintf("%s@mail.com", randomString(3)),
@@ -35,6 +56,25 @@ func TestLoginUserOK(t *testing.T) {
 
 	cur := testCurrentUser(t, token)
 	require.Equal(t, newUser.Email, cur.Email)
+}
+
+func TestLoginUserFail(t *testing.T) {
+	input := UserInput{
+		Email:    fmt.Sprintf("%s@mail.com", randomString(3)),
+		Password: "12345678",
+	}
+
+	p, err := json.Marshal(input)
+	require.NoError(t, err)
+
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodPost, "/api/login", bytes.NewReader(p))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+
+	handler.User.Login(c)
+	require.Equal(t, http.StatusBadRequest, rec.Code)
 }
 
 func testRegisterUser(t *testing.T, input UserInput) *User {

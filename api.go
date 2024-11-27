@@ -15,7 +15,9 @@ import (
 
 func RunServer(config *Config, handler *HandlerRegistry) error {
 	e := echo.New()
-	e.HTTPErrorHandler = HTTPErrorHandler
+	e.HTTPErrorHandler = func(err error, c echo.Context) {
+		NewAPIErr(c, err)
+	}
 
 	e.Use(middleware.Secure())
 	e.Use(middleware.Recover())

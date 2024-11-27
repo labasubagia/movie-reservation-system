@@ -25,7 +25,7 @@ func (h *ReservationHandler) UserCreate(c echo.Context) error {
 
 	var input ReservationInput
 	if err := c.Bind(&input); err != nil {
-		return err
+		return NewAPIErr(c, err)
 	}
 	input.UserID = userID
 	c.Set(KeyInput, input)
@@ -40,7 +40,7 @@ func (h *ReservationHandler) UserCreate(c echo.Context) error {
 		return nil
 	})
 	if err != nil {
-		return err
+		return NewAPIErr(c, err)
 	}
 
 	return c.JSON(http.StatusOK, Response[*Reservation]{Message: "ok", Data: reservation})
@@ -53,12 +53,12 @@ func (h *ReservationHandler) UserUpdateByID(c echo.Context) error {
 
 	ID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		return NewErr(ErrInput, err, "id invalid")
+		return NewAPIErr(c, NewErr(ErrInput, err, "id invalid"))
 	}
 
 	var input ReservationInput
 	if err := c.Bind(&input); err != nil {
-		return err
+		return NewAPIErr(c, err)
 	}
 	input.UserID = userID
 
@@ -73,7 +73,7 @@ func (h *ReservationHandler) UserUpdateByID(c echo.Context) error {
 		return nil
 	})
 	if err != nil {
-		return err
+		return NewAPIErr(c, err)
 	}
 
 	return c.JSON(http.StatusOK, Response[*Reservation]{Message: "ok", Data: reservation})
@@ -86,7 +86,7 @@ func (h *ReservationHandler) UserGetByID(c echo.Context) error {
 
 	ID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		return NewErr(ErrInput, err, "id invalid")
+		return NewAPIErr(c, NewErr(ErrInput, err, "id invalid"))
 	}
 
 	var reservation *Reservation
@@ -98,7 +98,7 @@ func (h *ReservationHandler) UserGetByID(c echo.Context) error {
 		return nil
 	})
 	if err != nil {
-		return err
+		return NewAPIErr(c, err)
 	}
 
 	return c.JSON(http.StatusOK, Response[*Reservation]{Message: "ok", Data: reservation})
@@ -110,14 +110,14 @@ func (h *ReservationHandler) UserDeleteByID(c echo.Context) error {
 
 	ID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		return NewErr(ErrInput, err, "id invalid")
+		return NewAPIErr(c, NewErr(ErrInput, err, "id invalid"))
 	}
 
 	err = h.trxProvider.Transact(ctx, func(service *ServiceRegistry) error {
 		return service.Reservation.UserDeleteByID(ctx, userID, int64(ID))
 	})
 	if err != nil {
-		return err
+		return NewAPIErr(c, err)
 	}
 
 	return c.JSON(http.StatusOK, Response[any]{Message: "ok"})
@@ -131,7 +131,7 @@ func (h *ReservationHandler) UserGetPagination(c echo.Context) error {
 
 	var filter ReservationFilter
 	if err := c.Bind(&filter); err != nil {
-		return err
+		return NewAPIErr(c, err)
 	}
 	filter.UserIDs = []int64{userID}
 	c.Set(KeyInput, filter)
@@ -146,7 +146,7 @@ func (h *ReservationHandler) UserGetPagination(c echo.Context) error {
 		return nil
 	})
 	if err != nil {
-		return err
+		return NewAPIErr(c, err)
 	}
 
 	return c.JSON(http.StatusOK, Response[*Paginate[Reservation]]{Message: "ok", Data: res})

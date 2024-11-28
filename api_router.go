@@ -8,6 +8,7 @@ func Route(e *echo.Echo, config *Config, handler *HandlerRegistry) {
 		public.POST("/register", handler.User.Register)
 		public.POST("/login", handler.User.Login)
 		public.GET("/movies", handler.Movie.Pagination)
+		public.GET("/movies/:id", handler.Movie.GetByID)
 	}
 
 	loggedIn := e.Group("/api", jwtMiddleware(config))
@@ -27,6 +28,9 @@ func Route(e *echo.Echo, config *Config, handler *HandlerRegistry) {
 
 	admin := e.Group("/api/admin", jwtMiddleware(config), adminMiddleware)
 	{
+		admin.GET("/roles/", handler.User.PaginationRole)
+		admin.GET("/roles/:id", handler.User.GetRoleByID)
+
 		admin.PUT("/user/:id", handler.User.ChangeRoleByID)
 
 		admin.GET("/genres", handler.Movie.PaginationGenre)

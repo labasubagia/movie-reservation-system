@@ -6,11 +6,27 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
+	"strconv"
 	"testing"
 
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/require"
 )
+
+func TestRole(t *testing.T) {
+	token := testLoginAdmin(t)
+
+	pRoles, rec := testPaginationRole(t, token, RoleFilter{Names: []string{"admin"}}, PaginateInput{1, 10})
+	require.NotNil(t, pRoles)
+	require.Equal(t, http.StatusOK, rec.Code)
+	require.True(t, len(pRoles.Items) > 0)
+
+	role, rec := testGetRole(t, token, pRoles.Items[0].ID)
+	require.NotNil(t, role)
+	require.Equal(t, http.StatusOK, rec.Code)
+	require.Equal(t, "admin", role.Name)
+}
 
 func TestRegisterUserOK(t *testing.T) {
 	input := UserInput{
@@ -55,7 +71,8 @@ func TestLoginUserOK(t *testing.T) {
 	require.NotEqual(t, token, "")
 	require.Equal(t, http.StatusOK, rec.Code)
 
-	cur := testCurrentUser(t, token)
+	cur, rec := testCurrentUser(t, token)
+	require.Equal(t, http.StatusOK, rec.Code)
 	require.Equal(t, newUser.Email, cur.Email)
 }
 
@@ -66,6 +83,29 @@ func TestLoginUserFail(t *testing.T) {
 	}
 	_, rec := testLoginUser(t, input)
 	require.Equal(t, http.StatusBadRequest, rec.Code)
+}
+
+func TestChangeUserRoleOK(t *testing.T) {
+	token := testLoginAdmin(t)
+
+	input := UserInput{
+		Email:    fmt.Sprintf("%s@mail.com", randomString(3)),
+		Password: "12345678",
+	}
+	newUser, rec := testRegisterUser(t, input)
+	require.Equal(t, http.StatusOK, rec.Code)
+
+	pRoles, rec := testPaginationRole(t, token, RoleFilter{Names: []string{"admin"}}, PaginateInput{1, 10})
+	require.NotNil(t, pRoles)
+	require.Equal(t, http.StatusOK, rec.Code)
+	require.True(t, len(pRoles.Items) > 0)
+	role := pRoles.Items[0]
+
+	user, rec := testChangeUserRole(t, token, newUser.ID, role.ID)
+	require.Equal(t, http.StatusOK, rec.Code)
+	require.NotNil(t, user)
+	require.Equal(t, user.Role, role.Name)
+
 }
 
 func testRegisterUser(t *testing.T, input UserInput) (*User, *httptest.ResponseRecorder) {
@@ -126,7 +166,7 @@ func testLoginUser(t *testing.T, input UserInput) (token string, recorder *httpt
 	return token, rec
 }
 
-func testCurrentUser(t *testing.T, token string) *User {
+func testCurrentUser(t *testing.T, token string) (*User, *httptest.ResponseRecorder) {
 	e := echo.New()
 
 	req := httptest.NewRequest(http.MethodGet, "/api/user", nil)
@@ -142,6 +182,78 @@ func testCurrentUser(t *testing.T, token string) *User {
 	err = json.Unmarshal(rec.Body.Bytes(), &res)
 	require.NoError(t, err)
 
-	require.Equal(t, http.StatusOK, rec.Code)
-	return res.Data
+	return res.Data, rec
+}
+
+func testChangeUserRole(t *testing.T, token string, ID, roleID int64) (*User, *httptest.ResponseRecorder) {
+	input := UserInput{RoleID: roleID}
+	p, err := json.Marshal(input)
+	require.NoError(t, err)
+
+	e := echo.New()
+
+	req := httptest.NewRequest(http.MethodPut, "/api/admin/user/:id", bytes.NewReader(p))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	req.Header.Set(echo.HeaderAuthorization, token)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+
+	c.SetParamNames("id")
+	c.SetParamValues(strconv.Itoa(int(ID)))
+
+	err = jwtMiddleware(config)(adminMiddleware(handler.User.ChangeRoleByID))(c)
+	require.NoError(t, err)
+
+	var res Response[*User]
+	err = json.Unmarshal(rec.Body.Bytes(), &res)
+	require.NoError(t, err)
+
+	return res.Data, rec
+}
+
+func testGetRole(t *testing.T, token string, ID int64) (*Role, *httptest.ResponseRecorder) {
+	e := echo.New()
+
+	req := httptest.NewRequest(http.MethodGet, "/api/admin/roles/:id", nil)
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	req.Header.Set(echo.HeaderAuthorization, token)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetParamNames("id")
+	c.SetParamValues(strconv.Itoa(int(ID)))
+
+	err := jwtMiddleware(config)(adminMiddleware(handler.User.GetRoleByID))(c)
+	require.NoError(t, err)
+
+	var res Response[*Role]
+	err = json.Unmarshal(rec.Body.Bytes(), &res)
+	require.NoError(t, err)
+
+	return res.Data, rec
+}
+
+func testPaginationRole(t *testing.T, token string, filter RoleFilter, page PaginateInput) (*Paginate[Role], *httptest.ResponseRecorder) {
+	p, err := json.Marshal(filter)
+	require.NoError(t, err)
+
+	e := echo.New()
+
+	q := make(url.Values)
+	q.Set("page", strconv.Itoa(int(page.Page)))
+	q.Set("per_page", strconv.Itoa(int(page.Size)))
+
+	req := httptest.NewRequest(http.MethodGet, "/api/admin/roles?"+q.Encode(), bytes.NewReader(p))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	req.Header.Set(echo.HeaderAuthorization, token)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+
+	err = jwtMiddleware(config)(adminMiddleware(handler.User.PaginationRole))(c)
+	require.NoError(t, err)
+
+	var res Response[*Paginate[Role]]
+	err = json.Unmarshal(rec.Body.Bytes(), &res)
+	require.NoError(t, err)
+
+	return res.Data, rec
 }

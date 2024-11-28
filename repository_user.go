@@ -150,3 +150,145 @@ func (r *UserRepository) getFilterSQL(_ context.Context, filter UserFilter) (sql
 	}
 	return sql, args
 }
+
+func (r *UserRepository) FindRoleOne(ctx context.Context, filter RoleFilter) (*Role, error) {
+	roles, err := r.FindRole(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	if len(roles) == 0 {
+		return nil, NewErr(ErrNotFound, nil, "role not found")
+	}
+	return &roles[0], nil
+}
+
+func (r *UserRepository) FindRole(ctx context.Context, filter RoleFilter) ([]Role, error) {
+	filterSQL, filterArgs := r.getFilterRoleSQL(ctx, filter)
+
+	sql := fmt.Sprintf(
+		`
+			select
+				r.id,
+				r.name
+			from
+				public.roles r
+			where
+				r.id in (%s)
+		`,
+		filterSQL,
+	)
+	rows, err := r.tx.Query(ctx, sql, filterArgs)
+	if err != nil {
+		return nil, NewSQLErr(err)
+	}
+	defer rows.Close()
+
+	var roles []Role
+	for rows.Next() {
+		var role Role
+		err := rows.Scan(&role.ID, &role.Name)
+		if err != nil {
+			return nil, NewSQLErr(err)
+		}
+		roles = append(roles, role)
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, NewSQLErr(err)
+	}
+
+	return roles, nil
+}
+
+func (r *UserRepository) PaginateRole(ctx context.Context, filter RoleFilter, page PaginateInput) (*Paginate[Role], error) {
+	filterSQL, filterArgs := r.getFilterRoleSQL(ctx, filter)
+
+	var totalItems int64
+	sql := fmt.Sprintf("select count(*) from (%s)", filterSQL)
+	err := r.tx.QueryRow(ctx, sql, filterArgs).Scan(&totalItems)
+	if err != nil {
+		return nil, NewSQLErr(err)
+	}
+	p := NewPaginate([]Role{}, totalItems, page.Page, page.Size)
+	if totalItems == 0 {
+		return p, nil
+	}
+
+	if page.Page > p.TotalPage {
+		page.Page = p.TotalPage
+		p.CurrentPage = page.Page
+	}
+
+	sql = fmt.Sprintf(`
+		select
+			r.id,
+			r.name
+		from
+			public.roles r
+		where
+			r.id in (%s)
+		order by
+			r.name asc,
+			r.id desc
+		limit @page_size offset (@page - 1) * @page_size
+	`, filterSQL)
+	rows, err := r.tx.Query(ctx, sql, mergeNamedArgs(
+		filterArgs,
+		pgx.NamedArgs{
+			"page":      page.Page,
+			"page_size": page.Size,
+		}),
+	)
+	if err != nil {
+		return nil, NewSQLErr(err)
+	}
+	defer rows.Close()
+
+	var roles []Role
+	var movieIDs []int64
+	for rows.Next() {
+		var role Role
+		err := rows.Scan(
+			&role.ID,
+			&role.Name,
+		)
+		if err != nil {
+			return nil, NewSQLErr(err)
+		}
+		roles = append(roles, role)
+		movieIDs = append(movieIDs, role.ID)
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, NewSQLErr(err)
+	}
+
+	p.Items = roles
+	return p, nil
+}
+
+func (r *UserRepository) getFilterRoleSQL(_ context.Context, filter RoleFilter) (sql string, args pgx.NamedArgs) {
+	sql = `
+		select distinct _r.id
+		from public.roles _r
+		where
+			case
+				when array_length(@_ids::int[], 1) > 0 then
+					_r.id = any(@_ids)
+				else
+					true
+			end
+			and
+			case
+				when array_length(@_names::text[], 1) > 0 then
+					_r.name = any(@_names)
+				else
+					true
+			end
+	`
+	args = pgx.NamedArgs{
+		"_ids":   filter.IDs,
+		"_names": filter.Names,
+	}
+	return sql, args
+}

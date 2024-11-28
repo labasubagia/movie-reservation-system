@@ -117,3 +117,52 @@ func (h *UserHandler) ChangeRoleByID(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, Response[*User]{Message: "ok", Data: user})
 }
+
+func (h *UserHandler) GetRoleByID(c echo.Context) error {
+	ctx := c.Request().Context()
+
+	ID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return NewAPIErr(c, NewErr(ErrInput, err, "id invalid"))
+	}
+
+	var role *Role
+	err = h.trxProvider.Transact(ctx, func(service *ServiceRegistry) error {
+		role, err = service.User.GetRoleByID(ctx, int64(ID))
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return NewAPIErr(c, err)
+	}
+
+	return c.JSON(http.StatusOK, Response[*Role]{Message: "ok", Data: role})
+}
+
+func (h *UserHandler) PaginationRole(c echo.Context) error {
+	ctx := c.Request().Context()
+	page := GetPage(c)
+
+	var filter RoleFilter
+	if err := c.Bind(&filter); err != nil {
+		return NewAPIErr(c, err)
+	}
+	c.Set(KeyInput, filter)
+
+	var res *Paginate[Role]
+	var err error
+	err = h.trxProvider.Transact(ctx, func(service *ServiceRegistry) error {
+		res, err = service.User.PaginationRole(ctx, filter, page)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return NewAPIErr(c, err)
+	}
+
+	return c.JSON(http.StatusOK, Response[*Paginate[Role]]{Message: "ok", Data: res})
+}

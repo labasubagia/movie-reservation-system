@@ -17,6 +17,27 @@ func isValidRole(role string) bool {
 	return role == UserRegular || role == UserAdmin
 }
 
+type RoleFilter struct {
+	IDs   []int64  `json:"role_ids,omitempty"`
+	Names []string `json:"roles,omitempty"`
+}
+
+func (f *RoleFilter) Validate() error {
+	for i, v := range f.Names {
+		role := strings.Trim(v, " ")
+		if !isValidRole(v) {
+			return NewErr(ErrInput, nil, "role index %d = %s invalid", i, v)
+		}
+		f.Names[i] = role
+	}
+	return nil
+}
+
+type Role struct {
+	ID   int64  `json:"id"`
+	Name string `json:"name"`
+}
+
 type UserFilter struct {
 	IDs     []int64  `json:"ids,omitempty"`
 	Emails  []string `json:"emails,omitempty"`

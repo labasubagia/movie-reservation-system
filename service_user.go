@@ -86,3 +86,15 @@ func (s *UserService) ChangeRoleByID(ctx context.Context, ID int64, input UserIn
 
 	return user, nil
 }
+
+func (s *UserService) GetRoleByID(ctx context.Context, ID int64) (*Role, error) {
+	return s.repo.User.FindRoleOne(ctx, RoleFilter{IDs: []int64{ID}})
+}
+
+func (s *UserService) PaginationRole(ctx context.Context, filter RoleFilter, page PaginateInput) (*Paginate[Role], error) {
+	err := filter.Validate()
+	if err != nil {
+		return nil, err
+	}
+	return s.repo.User.PaginateRole(ctx, filter, page)
+}

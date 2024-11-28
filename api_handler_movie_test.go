@@ -144,7 +144,13 @@ func TestCreateMovieOK(t *testing.T) {
 		Description: randomString(5),
 		GenreIDs:    genreIDs,
 	}
-	newMovie := testCreateMovie(t, token, movieInput)
+	newMovie, rec := testCreateMovie(t, token, movieInput)
+
+	require.Equal(t, http.StatusOK, rec.Code)
+	require.NotNil(t, newMovie)
+	require.Equal(t, movieInput.Title, newMovie.Title)
+	require.Equal(t, movieInput.Director, newMovie.Director)
+	require.ElementsMatch(t, movieInput.GenreIDs, newMovie.GenreIDs)
 	require.ElementsMatch(t, genres, newMovie.Genres)
 }
 
@@ -170,13 +176,21 @@ func TestUpdateMovieOK(t *testing.T) {
 		Description: randomString(5),
 		GenreIDs:    genreIDs,
 	}
-	newMovie := testCreateMovie(t, token, movieInput)
+	newMovie, rec := testCreateMovie(t, token, movieInput)
+	require.Equal(t, http.StatusOK, rec.Code)
+	require.NotNil(t, newMovie)
+	require.Equal(t, movieInput.Title, newMovie.Title)
+	require.Equal(t, movieInput.Director, newMovie.Director)
+	require.ElementsMatch(t, movieInput.GenreIDs, newMovie.GenreIDs)
+	require.ElementsMatch(t, genres, newMovie.Genres)
 
 	movieInput.Title = randomString(5)
 	movieInput.Duration = 148
 	movieInput.Director = randomString(5)
 	movieInput.GenreIDs = genreIDs[1:]
-	updatedMovie := testUpdateMovie(t, token, newMovie.ID, movieInput)
+	updatedMovie, rec := testUpdateMovie(t, token, newMovie.ID, movieInput)
+	require.Equal(t, http.StatusOK, rec.Code)
+	require.NotNil(t, updatedMovie)
 
 	require.NotEqual(t, newMovie.Duration, updatedMovie.Duration)
 	require.NotEqual(t, newMovie.Director, updatedMovie.Director)
@@ -205,9 +219,16 @@ func TestDeleteMovieOK(t *testing.T) {
 		Description: randomString(5),
 		GenreIDs:    genreIDs,
 	}
-	newMovie := testCreateMovie(t, token, movieInput)
+	newMovie, rec := testCreateMovie(t, token, movieInput)
+	require.Equal(t, http.StatusOK, rec.Code)
+	require.NotNil(t, newMovie)
+	require.Equal(t, movieInput.Title, newMovie.Title)
+	require.Equal(t, movieInput.Director, newMovie.Director)
+	require.ElementsMatch(t, movieInput.GenreIDs, newMovie.GenreIDs)
+	require.ElementsMatch(t, genres, newMovie.Genres)
 
-	testDeleteMovie(t, token, newMovie.ID)
+	rec = testDeleteMovie(t, token, newMovie.ID)
+	require.Equal(t, http.StatusOK, rec.Code)
 }
 
 func TestPaginationMovieOK(t *testing.T) {
@@ -234,14 +255,20 @@ func TestPaginationMovieOK(t *testing.T) {
 			Description: randomString(5),
 			GenreIDs:    genreIDs,
 		}
-		v := testCreateMovie(t, token, movieInput)
-		movieIDs = append(movieIDs, v.ID)
+		newMovie, rec := testCreateMovie(t, token, movieInput)
+		require.Equal(t, http.StatusOK, rec.Code)
+		require.NotNil(t, newMovie)
+		movieIDs = append(movieIDs, newMovie.ID)
 	}
 
-	p := testPaginationMovie(t, token, MovieFilter{IDs: movieIDs}, PaginateInput{1, 2})
+	p, rec := testPaginationMovie(t, token, MovieFilter{IDs: movieIDs}, PaginateInput{1, 2})
+	require.NotNil(t, p)
+	require.Equal(t, http.StatusOK, rec.Code)
 	require.Len(t, p.Items, 2)
 
-	p = testPaginationMovie(t, token, MovieFilter{IDs: movieIDs}, PaginateInput{1, 10})
+	p, rec = testPaginationMovie(t, token, MovieFilter{IDs: movieIDs}, PaginateInput{1, 10})
+	require.NotNil(t, p)
+	require.Equal(t, http.StatusOK, rec.Code)
 	require.Len(t, p.Items, 5)
 }
 
@@ -267,9 +294,18 @@ func TestGetMovieOK(t *testing.T) {
 		Description: randomString(5),
 		GenreIDs:    genreIDs,
 	}
-	newMovie := testCreateMovie(t, token, movieInput)
+	newMovie, rec := testCreateMovie(t, token, movieInput)
+	require.Equal(t, http.StatusOK, rec.Code)
+	require.NotNil(t, newMovie)
+	require.Equal(t, movieInput.Title, newMovie.Title)
+	require.Equal(t, movieInput.Director, newMovie.Director)
+	require.ElementsMatch(t, movieInput.GenreIDs, newMovie.GenreIDs)
+	require.ElementsMatch(t, genres, newMovie.Genres)
 
-	curMovie := testGetMovie(t, token, newMovie.ID)
+	curMovie, rec := testGetMovie(t, token, newMovie.ID)
+	require.Equal(t, http.StatusOK, rec.Code)
+	require.NotNil(t, curMovie)
+
 	require.Equal(t, newMovie.ID, curMovie.ID)
 	require.Equal(t, newMovie.Title, curMovie.Title)
 
@@ -287,7 +323,7 @@ func testCreateGenre(t *testing.T, token string, input GenreInput) (*Genre, *htt
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
-	err = jwtMiddleware(config)(handler.Movie.CreateGenre)(c)
+	err = jwtMiddleware(config)(adminMiddleware(handler.Movie.CreateGenre))(c)
 	require.NoError(t, err)
 
 	var res Response[*Genre]
@@ -311,7 +347,7 @@ func testUpdateGenre(t *testing.T, token string, ID int64, input GenreInput) (*G
 	c.SetParamNames("id")
 	c.SetParamValues(strconv.Itoa(int(ID)))
 
-	err = jwtMiddleware(config)(handler.Movie.UpdateGenreByID)(c)
+	err = jwtMiddleware(config)(adminMiddleware(handler.Movie.UpdateGenreByID))(c)
 	require.NoError(t, err)
 
 	var res Response[*Genre]
@@ -332,7 +368,7 @@ func testGetGenre(t *testing.T, token string, ID int64) (*Genre, *httptest.Respo
 	c.SetParamNames("id")
 	c.SetParamValues(strconv.Itoa(int(ID)))
 
-	err := jwtMiddleware(config)(handler.Movie.GetGenreByID)(c)
+	err := jwtMiddleware(config)(adminMiddleware(handler.Movie.GetGenreByID))(c)
 	require.NoError(t, err)
 
 	var res Response[*Genre]
@@ -353,7 +389,7 @@ func testDeleteGenre(t *testing.T, token string, ID int64) (*Genre, *httptest.Re
 	c.SetParamNames("id")
 	c.SetParamValues(strconv.Itoa(int(ID)))
 
-	err := jwtMiddleware(config)(handler.Movie.DeleteGenreByID)(c)
+	err := jwtMiddleware(config)(adminMiddleware(handler.Movie.DeleteGenreByID))(c)
 	require.NoError(t, err)
 
 	var res Response[*Genre]
@@ -379,7 +415,7 @@ func testPaginationGenre(t *testing.T, token string, filter GenreFilter, page Pa
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
-	err = jwtMiddleware(config)(handler.Movie.PaginationGenre)(c)
+	err = jwtMiddleware(config)(adminMiddleware(handler.Movie.PaginationGenre))(c)
 	require.NoError(t, err)
 
 	var res Response[*Paginate[Genre]]
@@ -389,7 +425,7 @@ func testPaginationGenre(t *testing.T, token string, filter GenreFilter, page Pa
 	return res.Data, rec
 }
 
-func testCreateMovie(t *testing.T, token string, input MovieInput) *Movie {
+func testCreateMovie(t *testing.T, token string, input MovieInput) (*Movie, *httptest.ResponseRecorder) {
 	p, err := json.Marshal(input)
 	require.NoError(t, err)
 
@@ -400,25 +436,17 @@ func testCreateMovie(t *testing.T, token string, input MovieInput) *Movie {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
-	err = jwtMiddleware(config)(handler.Movie.Create)(c)
+	err = jwtMiddleware(config)(adminMiddleware(handler.Movie.Create))(c)
 	require.NoError(t, err)
-
-	require.Equal(t, http.StatusOK, rec.Code)
 
 	var res Response[*Movie]
 	err = json.Unmarshal(rec.Body.Bytes(), &res)
 	require.NoError(t, err)
-	require.Equal(t, http.StatusOK, rec.Code)
-	require.NotNil(t, res.Data)
 
-	require.Equal(t, input.Title, res.Data.Title)
-	require.Equal(t, input.Director, res.Data.Director)
-	require.ElementsMatch(t, input.GenreIDs, res.Data.GenreIDs)
-
-	return res.Data
+	return res.Data, rec
 }
 
-func testUpdateMovie(t *testing.T, token string, ID int64, input MovieInput) *Movie {
+func testUpdateMovie(t *testing.T, token string, ID int64, input MovieInput) (*Movie, *httptest.ResponseRecorder) {
 	p, err := json.Marshal(input)
 	require.NoError(t, err)
 
@@ -431,25 +459,17 @@ func testUpdateMovie(t *testing.T, token string, ID int64, input MovieInput) *Mo
 	c.SetParamNames("id")
 	c.SetParamValues(strconv.Itoa(int(ID)))
 
-	err = jwtMiddleware(config)(handler.Movie.UpdateByID)(c)
+	err = jwtMiddleware(config)(adminMiddleware(handler.Movie.UpdateByID))(c)
 	require.NoError(t, err)
-
-	require.Equal(t, http.StatusOK, rec.Code)
 
 	var res Response[*Movie]
 	err = json.Unmarshal(rec.Body.Bytes(), &res)
 	require.NoError(t, err)
-	require.Equal(t, http.StatusOK, rec.Code)
-	require.NotNil(t, res.Data)
 
-	require.Equal(t, input.Title, res.Data.Title)
-	require.Equal(t, input.Director, res.Data.Director)
-	require.ElementsMatch(t, input.GenreIDs, res.Data.GenreIDs)
-
-	return res.Data
+	return res.Data, rec
 }
 
-func testDeleteMovie(t *testing.T, token string, ID int64) {
+func testDeleteMovie(t *testing.T, token string, ID int64) *httptest.ResponseRecorder {
 
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodDelete, "/api/admin/movies/:id", nil)
@@ -460,12 +480,12 @@ func testDeleteMovie(t *testing.T, token string, ID int64) {
 	c.SetParamNames("id")
 	c.SetParamValues(strconv.Itoa(int(ID)))
 
-	err := jwtMiddleware(config)(handler.Movie.DeleteByID)(c)
+	err := jwtMiddleware(config)(adminMiddleware(handler.Movie.DeleteByID))(c)
 	require.NoError(t, err)
-	require.Equal(t, http.StatusOK, rec.Code)
+	return rec
 }
 
-func testGetMovie(t *testing.T, token string, ID int64) *Movie {
+func testGetMovie(t *testing.T, token string, ID int64) (*Movie, *httptest.ResponseRecorder) {
 
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodGet, "/api/admin/movies/:id", nil)
@@ -478,17 +498,15 @@ func testGetMovie(t *testing.T, token string, ID int64) *Movie {
 
 	err := jwtMiddleware(config)(handler.Movie.GetByID)(c)
 	require.NoError(t, err)
-	require.Equal(t, http.StatusOK, rec.Code)
 
 	var res Response[*Movie]
 	err = json.Unmarshal(rec.Body.Bytes(), &res)
 	require.NoError(t, err)
-	require.NotNil(t, res.Data)
 
-	return res.Data
+	return res.Data, rec
 }
 
-func testPaginationMovie(t *testing.T, token string, filter MovieFilter, page PaginateInput) *Paginate[Movie] {
+func testPaginationMovie(t *testing.T, token string, filter MovieFilter, page PaginateInput) (*Paginate[Movie], *httptest.ResponseRecorder) {
 	p, err := json.Marshal(filter)
 	require.NoError(t, err)
 
@@ -506,12 +524,10 @@ func testPaginationMovie(t *testing.T, token string, filter MovieFilter, page Pa
 
 	err = jwtMiddleware(config)(handler.Movie.Pagination)(c)
 	require.NoError(t, err)
-	require.Equal(t, http.StatusOK, rec.Code)
 
 	var res Response[*Paginate[Movie]]
 	err = json.Unmarshal(rec.Body.Bytes(), &res)
 	require.NoError(t, err)
-	require.NotNil(t, res.Data)
 
-	return res.Data
+	return res.Data, rec
 }

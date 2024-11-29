@@ -42,7 +42,7 @@ func (i *MovieInput) Validate() error {
 	}
 	_, err := url.ParseRequestURI(i.PosterURL)
 	if err != nil {
-		return NewErr(ErrInput, nil, "poster url is not a valid url")
+		return NewErr(ErrInput, err, "poster url is not a valid url")
 	}
 	if len(i.GenreIDs) == 0 {
 		return NewErr(ErrInput, nil, "genre ids is required")

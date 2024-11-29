@@ -387,6 +387,52 @@ func TestDeleteShowtimeOK(t *testing.T) {
 
 }
 
+func TestGetShowtimeSeatOK(t *testing.T) {
+	token := testLoginAdmin(t)
+	newGenre, rec := testCreateGenre(t, token, GenreInput{Name: randomString(4)})
+	require.Equal(t, http.StatusOK, rec.Code)
+	require.NotNil(t, newGenre)
+
+	newMovie, rec := testCreateMovie(t, token, MovieInput{
+		Title:       randomString(5),
+		ReleaseDate: time.Now(),
+		Director:    randomString(5),
+		Duration:    33,
+		PosterURL:   fmt.Sprintf("http://%s.com", randomString(5)),
+		Description: randomString(5),
+		GenreIDs:    []int64{newGenre.ID},
+	})
+	require.Equal(t, http.StatusOK, rec.Code)
+	require.NotNil(t, newMovie)
+
+	newRoom, rec := testCreateRoom(t, token, RoomInput{
+		Name: randomString(5),
+	})
+	require.Equal(t, http.StatusOK, rec.Code)
+	require.NotNil(t, newRoom)
+
+	inputSeats := []SeatInput{{Name: randomString(5), AdditionalPrice: 3000}, {Name: randomString(4)}}
+	rec = testSetRoomSeats(t, token, newRoom.ID, inputSeats)
+
+	showtimeInput := ShowtimeInput{
+		MovieID: newMovie.ID,
+		RoomID:  newRoom.ID,
+		StartAt: time.Now(),
+		EndAt:   time.Now().Add(2 * time.Hour),
+		Price:   50_000,
+	}
+	newShowtime, rec := testCreateShowtime(t, token, showtimeInput)
+	require.Equal(t, http.StatusOK, rec.Code)
+	require.NotNil(t, newShowtime)
+	require.Equal(t, showtimeInput.MovieID, newShowtime.MovieID)
+	require.Equal(t, showtimeInput.RoomID, newShowtime.RoomID)
+
+	seats, rec := testGetShowtimeSeat(t, newShowtime.ID)
+	require.Equal(t, http.StatusOK, rec.Code)
+	require.NotNil(t, seats)
+	require.Equal(t, len(inputSeats), len(seats))
+}
+
 func testCreateShowtime(t *testing.T, token string, input ShowtimeInput) (*Showtime, *httptest.ResponseRecorder) {
 	p, err := json.Marshal(input)
 	require.NoError(t, err)
@@ -492,6 +538,25 @@ func testPaginateShowtime(t *testing.T, filter ShowtimeFilter, page PaginateInpu
 	require.NoError(t, err)
 
 	var res Response[*Paginate[Showtime]]
+	err = json.Unmarshal(rec.Body.Bytes(), &res)
+	require.NoError(t, err)
+
+	return res.Data, rec
+}
+
+func testGetShowtimeSeat(t *testing.T, ID int64) ([]Seat, *httptest.ResponseRecorder) {
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/api/showtimes/:id/seats", nil)
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetParamNames("id")
+	c.SetParamValues(strconv.Itoa(int(ID)))
+
+	err := handler.Showtime.GetShowtimeSeatByID(c)
+	require.NoError(t, err)
+
+	var res Response[[]Seat]
 	err = json.Unmarshal(rec.Body.Bytes(), &res)
 	require.NoError(t, err)
 

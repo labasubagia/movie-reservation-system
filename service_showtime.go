@@ -37,7 +37,7 @@ func (s *ShowtimeService) Create(ctx context.Context, input ShowtimeInput) (*Sho
 	}
 
 	for _, showtime := range cur {
-		err = showtime.ValidateOtherOverlapping(input.StartAt, input.EndAt)
+		err = showtime.ValidateOtherOverlapping(input.RoomID, input.StartAt, input.EndAt)
 		if err != nil {
 			return nil, err
 		}
@@ -89,7 +89,7 @@ func (s *ShowtimeService) UpdateByID(ctx context.Context, ID int64, input Showti
 		if showtime.ID == ID {
 			continue
 		}
-		err = showtime.ValidateOtherOverlapping(input.StartAt, input.EndAt)
+		err = showtime.ValidateOtherOverlapping(input.RoomID, input.StartAt, input.EndAt)
 		if err != nil {
 			return nil, err
 		}

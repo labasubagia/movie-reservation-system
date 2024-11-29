@@ -75,8 +75,12 @@ type Showtime struct {
 	AvailableSeat int64  `json:"available_seat"`
 }
 
-func (s *Showtime) ValidateOtherOverlapping(startAt, endAt time.Time) error {
+func (s *Showtime) ValidateOtherOverlapping(roomID int64, startAt, endAt time.Time) error {
 	errOverlapping := NewErr(ErrInput, nil, "showtime room overlapping with other showtime")
+
+	if s.RoomID != roomID {
+		return nil
+	}
 
 	if s.StartAt.Equal(startAt) {
 		return errOverlapping

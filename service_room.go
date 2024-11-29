@@ -34,7 +34,12 @@ func (s *RoomService) Create(ctx context.Context, input RoomInput) (*Room, error
 }
 
 func (s *RoomService) UpdateByID(ctx context.Context, ID int64, input RoomInput) (*Room, error) {
-	err := input.Validate()
+	_, err := s.repo.Room.FindOne(ctx, RoomFilter{IDs: []int64{ID}})
+	if err != nil {
+		return nil, err
+	}
+
+	err = input.Validate()
 	if err != nil {
 		return nil, err
 	}
@@ -98,4 +103,8 @@ func (s *RoomService) SetSeats(ctx context.Context, roomID int64, input []SeatIn
 	}
 
 	return nil
+}
+
+func (r *RoomService) ListSeats(ctx context.Context, roomID int64) ([]Seat, error) {
+	return r.repo.Room.FilterSeats(ctx, SeatFilter{RoomIDs: []int64{roomID}})
 }

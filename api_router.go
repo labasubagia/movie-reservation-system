@@ -14,6 +14,10 @@ func Route(e *echo.Echo, config *Config, handler *HandlerRegistry) {
 		public.GET("/showtimes/:id", handler.Showtime.GetByID)
 		public.GET("/showtimes/:id/seats", handler.Showtime.GetShowtimeSeatByID)
 		public.GET("/showtimes", handler.Showtime.Pagination)
+
+		public.GET("/rooms", handler.Room.Pagination)
+		public.GET("/rooms/:id", handler.Room.GetByID)
+		public.GET("/rooms/:id/seats", handler.Room.ListSeats)
 	}
 
 	loggedIn := e.Group("/api", jwtMiddleware(config))
@@ -52,6 +56,7 @@ func Route(e *echo.Echo, config *Config, handler *HandlerRegistry) {
 		admin.DELETE("/rooms/:id", handler.Movie.DeleteByID)
 
 		admin.POST("/rooms/:id/seats", handler.Room.SetSeats)
+		admin.GET("/rooms/:id/seats", handler.Room.ListSeats)
 
 		admin.GET("/showtimes/:id", handler.Showtime.GetByID)
 		admin.GET("/showtimes", handler.Showtime.Pagination)

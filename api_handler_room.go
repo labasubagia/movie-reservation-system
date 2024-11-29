@@ -168,3 +168,27 @@ func (h *RoomHandler) SetSeats(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, Response[any]{Message: "ok"})
 }
+
+func (h *RoomHandler) ListSeats(c echo.Context) error {
+	ctx := c.Request().Context()
+
+	ID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return NewAPIErr(c, NewErr(ErrInput, err, "id invalid"))
+	}
+
+	var seats []Seat
+	err = h.trxProvider.Transact(ctx, func(service *ServiceRegistry) error {
+		seats, err = service.Room.ListSeats(ctx, int64(ID))
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+
+	if err != nil {
+		return NewAPIErr(c, err)
+	}
+
+	return c.JSON(http.StatusOK, Response[[]Seat]{Message: "ok", Data: seats})
+}

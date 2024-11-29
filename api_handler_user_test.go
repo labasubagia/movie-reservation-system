@@ -112,14 +112,10 @@ func testRegisterUser(t *testing.T, input UserInput) (*User, *httptest.ResponseR
 	p, err := json.Marshal(input)
 	require.NoError(t, err)
 
-	e := echo.New()
 	req := httptest.NewRequest(http.MethodPost, "/api/register", bytes.NewReader(p))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-
-	err = handler.User.Register(c)
-	require.NoError(t, err)
+	testServer.ServeHTTP(rec, req)
 
 	var res Response[*User]
 	err = json.Unmarshal(rec.Body.Bytes(), &res)
@@ -144,14 +140,10 @@ func testLoginUser(t *testing.T, input UserInput) (token string, recorder *httpt
 	p, err := json.Marshal(input)
 	require.NoError(t, err)
 
-	e := echo.New()
 	req := httptest.NewRequest(http.MethodPost, "/api/login", bytes.NewReader(p))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-
-	err = handler.User.Login(c)
-	require.NoError(t, err)
+	testServer.ServeHTTP(rec, req)
 
 	var res Response[map[string]string]
 	err = json.Unmarshal(rec.Body.Bytes(), &res)
@@ -167,19 +159,15 @@ func testLoginUser(t *testing.T, input UserInput) (token string, recorder *httpt
 }
 
 func testCurrentUser(t *testing.T, token string) (*User, *httptest.ResponseRecorder) {
-	e := echo.New()
 
 	req := httptest.NewRequest(http.MethodGet, "/api/user", nil)
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	req.Header.Set(echo.HeaderAuthorization, token)
 	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-
-	err := jwtMiddleware(config)(handler.User.LoggedIn)(c)
-	require.NoError(t, err)
+	testServer.ServeHTTP(rec, req)
 
 	var res Response[*User]
-	err = json.Unmarshal(rec.Body.Bytes(), &res)
+	err := json.Unmarshal(rec.Body.Bytes(), &res)
 	require.NoError(t, err)
 
 	return res.Data, rec
@@ -190,19 +178,12 @@ func testChangeUserRole(t *testing.T, token string, ID, roleID int64) (*User, *h
 	p, err := json.Marshal(input)
 	require.NoError(t, err)
 
-	e := echo.New()
-
-	req := httptest.NewRequest(http.MethodPut, "/api/admin/user/:id", bytes.NewReader(p))
+	uri := fmt.Sprintf("/api/admin/user/%d", ID)
+	req := httptest.NewRequest(http.MethodPut, uri, bytes.NewReader(p))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	req.Header.Set(echo.HeaderAuthorization, token)
 	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-
-	c.SetParamNames("id")
-	c.SetParamValues(strconv.Itoa(int(ID)))
-
-	err = jwtMiddleware(config)(adminMiddleware(handler.User.ChangeRoleByID))(c)
-	require.NoError(t, err)
+	testServer.ServeHTTP(rec, req)
 
 	var res Response[*User]
 	err = json.Unmarshal(rec.Body.Bytes(), &res)
@@ -212,21 +193,15 @@ func testChangeUserRole(t *testing.T, token string, ID, roleID int64) (*User, *h
 }
 
 func testGetRole(t *testing.T, token string, ID int64) (*Role, *httptest.ResponseRecorder) {
-	e := echo.New()
-
-	req := httptest.NewRequest(http.MethodGet, "/api/admin/roles/:id", nil)
+	uri := fmt.Sprintf("/api/admin/roles/%d", ID)
+	req := httptest.NewRequest(http.MethodGet, uri, nil)
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	req.Header.Set(echo.HeaderAuthorization, token)
 	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-	c.SetParamNames("id")
-	c.SetParamValues(strconv.Itoa(int(ID)))
-
-	err := jwtMiddleware(config)(adminMiddleware(handler.User.GetRoleByID))(c)
-	require.NoError(t, err)
+	testServer.ServeHTTP(rec, req)
 
 	var res Response[*Role]
-	err = json.Unmarshal(rec.Body.Bytes(), &res)
+	err := json.Unmarshal(rec.Body.Bytes(), &res)
 	require.NoError(t, err)
 
 	return res.Data, rec
@@ -236,20 +211,16 @@ func testPaginationRole(t *testing.T, token string, filter RoleFilter, page Pagi
 	p, err := json.Marshal(filter)
 	require.NoError(t, err)
 
-	e := echo.New()
-
 	q := make(url.Values)
 	q.Set("page", strconv.Itoa(int(page.Page)))
 	q.Set("per_page", strconv.Itoa(int(page.Size)))
 
-	req := httptest.NewRequest(http.MethodGet, "/api/admin/roles?"+q.Encode(), bytes.NewReader(p))
+	uri := "/api/admin/roles?" + q.Encode()
+	req := httptest.NewRequest(http.MethodGet, uri, bytes.NewReader(p))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	req.Header.Set(echo.HeaderAuthorization, token)
 	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-
-	err = jwtMiddleware(config)(adminMiddleware(handler.User.PaginationRole))(c)
-	require.NoError(t, err)
+	testServer.ServeHTTP(rec, req)
 
 	var res Response[*Paginate[Role]]
 	err = json.Unmarshal(rec.Body.Bytes(), &res)

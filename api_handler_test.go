@@ -2,24 +2,23 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"testing"
 	"time"
 
+	"github.com/labstack/echo/v4"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
-var config *Config
-var handler HandlerRegistry
+var testServer *echo.Echo
 
 func TestMain(m *testing.M) {
 
 	ctx := context.Background()
 
-	config = NewConfig()
+	config := NewConfig()
 
 	container, err := postgres.Run(
 		ctx,
@@ -55,8 +54,8 @@ func TestMain(m *testing.M) {
 	}
 
 	trxProvider := NewTransactionProvider(config, pool)
-	handler = *NewHandler(config, trxProvider)
+	handler := NewHandler(config, trxProvider)
+	testServer = setupServer(config, handler)
 
-	fmt.Println("run test")
 	m.Run()
 }

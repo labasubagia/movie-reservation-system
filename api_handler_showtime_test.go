@@ -437,15 +437,11 @@ func testCreateShowtime(t *testing.T, token string, input ShowtimeInput) (*Showt
 	p, err := json.Marshal(input)
 	require.NoError(t, err)
 
-	e := echo.New()
 	req := httptest.NewRequest(http.MethodPost, "/api/admin/showtimes", bytes.NewReader(p))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	req.Header.Set(echo.HeaderAuthorization, token)
 	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-
-	err = jwtMiddleware(config)(adminMiddleware(handler.Showtime.Create))(c)
-	require.NoError(t, err)
+	testServer.ServeHTTP(rec, req)
 
 	var res Response[*Showtime]
 	err = json.Unmarshal(rec.Body.Bytes(), &res)
@@ -458,17 +454,12 @@ func testUpdateShowtime(t *testing.T, token string, ID int64, input ShowtimeInpu
 	p, err := json.Marshal(input)
 	require.NoError(t, err)
 
-	e := echo.New()
-	req := httptest.NewRequest(http.MethodPost, "/api/admin/showtimes/:id", bytes.NewReader(p))
+	uri := fmt.Sprintf("/api/admin/showtimes/%d", ID)
+	req := httptest.NewRequest(http.MethodPut, uri, bytes.NewReader(p))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	req.Header.Set(echo.HeaderAuthorization, token)
 	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-	c.SetParamNames("id")
-	c.SetParamValues(strconv.Itoa(int(ID)))
-
-	err = jwtMiddleware(config)(adminMiddleware(handler.Showtime.UpdateByID))(c)
-	require.NoError(t, err)
+	testServer.ServeHTTP(rec, req)
 
 	var res Response[*Showtime]
 	err = json.Unmarshal(rec.Body.Bytes(), &res)
@@ -479,40 +470,29 @@ func testUpdateShowtime(t *testing.T, token string, ID int64, input ShowtimeInpu
 
 func testGetShowtime(t *testing.T, ID int64) (*Showtime, *httptest.ResponseRecorder) {
 
-	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/api/admin/showtimes/:id", nil)
+	uri := fmt.Sprintf("/api/showtimes/%d", ID)
+	req := httptest.NewRequest(http.MethodGet, uri, nil)
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-	c.SetParamNames("id")
-	c.SetParamValues(strconv.Itoa(int(ID)))
-
-	err := handler.Showtime.GetByID(c)
-	require.NoError(t, err)
+	testServer.ServeHTTP(rec, req)
 
 	var res Response[*Showtime]
-	err = json.Unmarshal(rec.Body.Bytes(), &res)
+	err := json.Unmarshal(rec.Body.Bytes(), &res)
 	require.NoError(t, err)
 
 	return res.Data, rec
 }
 
 func testDeleteShowtime(t *testing.T, token string, ID int64) (*Showtime, *httptest.ResponseRecorder) {
-
-	e := echo.New()
-	req := httptest.NewRequest(http.MethodDelete, "/api/admin/showtimes/:id", nil)
+	uri := fmt.Sprintf("/api/admin/showtimes/%d", ID)
+	req := httptest.NewRequest(http.MethodDelete, uri, nil)
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	req.Header.Set(echo.HeaderAuthorization, token)
 	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-	c.SetParamNames("id")
-	c.SetParamValues(strconv.Itoa(int(ID)))
-
-	err := jwtMiddleware(config)(adminMiddleware(handler.Showtime.DeleteByID))(c)
-	require.NoError(t, err)
+	testServer.ServeHTTP(rec, req)
 
 	var res Response[*Showtime]
-	err = json.Unmarshal(rec.Body.Bytes(), &res)
+	err := json.Unmarshal(rec.Body.Bytes(), &res)
 	require.NoError(t, err)
 
 	return res.Data, rec
@@ -523,19 +503,15 @@ func testPaginateShowtime(t *testing.T, filter ShowtimeFilter, page PaginateInpu
 	p, err := json.Marshal(filter)
 	require.NoError(t, err)
 
-	e := echo.New()
-
 	q := make(url.Values)
 	q.Set("page", strconv.Itoa(int(page.Page)))
 	q.Set("per_page", strconv.Itoa(int(page.Size)))
+	uri := "/api/showtimes?" + q.Encode()
 
-	req := httptest.NewRequest(http.MethodGet, "/api/showtimes?"+q.Encode(), bytes.NewReader(p))
+	req := httptest.NewRequest(http.MethodGet, uri, bytes.NewReader(p))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-
-	err = handler.Showtime.Pagination(c)
-	require.NoError(t, err)
+	testServer.ServeHTTP(rec, req)
 
 	var res Response[*Paginate[Showtime]]
 	err = json.Unmarshal(rec.Body.Bytes(), &res)
@@ -545,19 +521,14 @@ func testPaginateShowtime(t *testing.T, filter ShowtimeFilter, page PaginateInpu
 }
 
 func testGetShowtimeSeat(t *testing.T, ID int64) ([]Seat, *httptest.ResponseRecorder) {
-	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/api/showtimes/:id/seats", nil)
+	uri := fmt.Sprintf("/api/showtimes/%d/seats", ID)
+	req := httptest.NewRequest(http.MethodGet, uri, nil)
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-	c.SetParamNames("id")
-	c.SetParamValues(strconv.Itoa(int(ID)))
-
-	err := handler.Showtime.GetShowtimeSeatByID(c)
-	require.NoError(t, err)
+	testServer.ServeHTTP(rec, req)
 
 	var res Response[[]Seat]
-	err = json.Unmarshal(rec.Body.Bytes(), &res)
+	err := json.Unmarshal(rec.Body.Bytes(), &res)
 	require.NoError(t, err)
 
 	return res.Data, rec

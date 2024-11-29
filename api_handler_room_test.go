@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -161,15 +162,11 @@ func testCreateRoom(t *testing.T, token string, input RoomInput) (*Room, *httpte
 	p, err := json.Marshal(input)
 	require.NoError(t, err)
 
-	e := echo.New()
 	req := httptest.NewRequest(http.MethodPost, "/api/admin/rooms", bytes.NewReader(p))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	req.Header.Set(echo.HeaderAuthorization, token)
 	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-
-	err = jwtMiddleware(config)(adminMiddleware(handler.Room.Create))(c)
-	require.NoError(t, err)
+	testServer.ServeHTTP(rec, req)
 
 	var res Response[*Room]
 	err = json.Unmarshal(rec.Body.Bytes(), &res)
@@ -182,17 +179,12 @@ func testUpdateRoom(t *testing.T, token string, ID int64, input RoomInput) (*Roo
 	p, err := json.Marshal(input)
 	require.NoError(t, err)
 
-	e := echo.New()
-	req := httptest.NewRequest(http.MethodPut, "/api/admin/rooms/:id", bytes.NewReader(p))
+	uri := fmt.Sprintf("/api/admin/rooms/%d", ID)
+	req := httptest.NewRequest(http.MethodPut, uri, bytes.NewReader(p))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	req.Header.Set(echo.HeaderAuthorization, token)
 	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-	c.SetParamNames("id")
-	c.SetParamValues(strconv.Itoa(int(ID)))
-
-	err = jwtMiddleware(config)(adminMiddleware(handler.Room.UpdateByID))(c)
-	require.NoError(t, err)
+	testServer.ServeHTTP(rec, req)
 
 	var res Response[*Room]
 	err = json.Unmarshal(rec.Body.Bytes(), &res)
@@ -202,41 +194,29 @@ func testUpdateRoom(t *testing.T, token string, ID int64, input RoomInput) (*Roo
 }
 
 func testGetRoom(t *testing.T, ID int64) (*Room, *httptest.ResponseRecorder) {
-
-	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/api/rooms/:id", nil)
+	uri := fmt.Sprintf("/api/rooms/%d", ID)
+	req := httptest.NewRequest(http.MethodGet, uri, nil)
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-	c.SetParamNames("id")
-	c.SetParamValues(strconv.Itoa(int(ID)))
-
-	err := handler.Room.GetByID(c)
-	require.NoError(t, err)
+	testServer.ServeHTTP(rec, req)
 
 	var res Response[*Room]
-	err = json.Unmarshal(rec.Body.Bytes(), &res)
+	err := json.Unmarshal(rec.Body.Bytes(), &res)
 	require.NoError(t, err)
 
 	return res.Data, rec
 }
 
 func testDeleteRoom(t *testing.T, token string, ID int64) (*Room, *httptest.ResponseRecorder) {
-
-	e := echo.New()
-	req := httptest.NewRequest(http.MethodPut, "/api/admin/rooms/:id", nil)
+	uri := fmt.Sprintf("/api/admin/rooms/%d", ID)
+	req := httptest.NewRequest(http.MethodDelete, uri, nil)
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	req.Header.Set(echo.HeaderAuthorization, token)
 	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-	c.SetParamNames("id")
-	c.SetParamValues(strconv.Itoa(int(ID)))
-
-	err := jwtMiddleware(config)(adminMiddleware(handler.Room.DeleteByID))(c)
-	require.NoError(t, err)
+	testServer.ServeHTTP(rec, req)
 
 	var res Response[*Room]
-	err = json.Unmarshal(rec.Body.Bytes(), &res)
+	err := json.Unmarshal(rec.Body.Bytes(), &res)
 	require.NoError(t, err)
 
 	return res.Data, rec
@@ -246,19 +226,15 @@ func testPaginationRoom(t *testing.T, filter RoomFilter, page PaginateInput) (*P
 	p, err := json.Marshal(filter)
 	require.NoError(t, err)
 
-	e := echo.New()
-
 	q := make(url.Values)
 	q.Set("page", strconv.Itoa(int(page.Page)))
 	q.Set("per_page", strconv.Itoa(int(page.Size)))
+	uri := "/api/rooms?" + q.Encode()
 
-	req := httptest.NewRequest(http.MethodGet, "/api/rooms?"+q.Encode(), bytes.NewReader(p))
+	req := httptest.NewRequest(http.MethodGet, uri, bytes.NewReader(p))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-
-	err = handler.Room.Pagination(c)
-	require.NoError(t, err)
+	testServer.ServeHTTP(rec, req)
 
 	var res Response[*Paginate[Genre]]
 	err = json.Unmarshal(rec.Body.Bytes(), &res)
@@ -271,35 +247,26 @@ func testSetRoomSeats(t *testing.T, token string, ID int64, input []SeatInput) *
 	p, err := json.Marshal(input)
 	require.NoError(t, err)
 
-	e := echo.New()
-	req := httptest.NewRequest(http.MethodPost, "/api/admin/rooms/:id/seats", bytes.NewReader(p))
+	uri := fmt.Sprintf("/api/admin/rooms/%d/seats", ID)
+	req := httptest.NewRequest(http.MethodPost, uri, bytes.NewReader(p))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	req.Header.Set(echo.HeaderAuthorization, token)
 	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-	c.SetParamNames("id")
-	c.SetParamValues(strconv.Itoa(int(ID)))
-
-	err = jwtMiddleware(config)(adminMiddleware(handler.Room.SetSeats))(c)
-	require.NoError(t, err)
+	testServer.ServeHTTP(rec, req)
 
 	return rec
 }
 
 func testListRoomSeats(t *testing.T, ID int64) ([]Seat, *httptest.ResponseRecorder) {
-	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/api/rooms/:id/seats", nil)
+
+	uri := fmt.Sprintf("/api/rooms/%d/seats", ID)
+	req := httptest.NewRequest(http.MethodGet, uri, nil)
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-	c.SetParamNames("id")
-	c.SetParamValues(strconv.Itoa(int(ID)))
-
-	err := handler.Room.ListSeats(c)
-	require.NoError(t, err)
+	testServer.ServeHTTP(rec, req)
 
 	var res Response[[]Seat]
-	err = json.Unmarshal(rec.Body.Bytes(), &res)
+	err := json.Unmarshal(rec.Body.Bytes(), &res)
 	require.NoError(t, err)
 
 	return res.Data, rec

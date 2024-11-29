@@ -227,7 +227,7 @@ func TestDeleteMovieOK(t *testing.T) {
 	require.ElementsMatch(t, movieInput.GenreIDs, newMovie.GenreIDs)
 	require.ElementsMatch(t, genres, newMovie.Genres)
 
-	rec = testDeleteMovie(t, token, newMovie.ID)
+	rec = testDeleteMovie(token, newMovie.ID)
 	require.Equal(t, http.StatusOK, rec.Code)
 }
 
@@ -315,16 +315,11 @@ func testCreateGenre(t *testing.T, token string, input GenreInput) (*Genre, *htt
 	p, err := json.Marshal(input)
 	require.NoError(t, err)
 
-	e := echo.New()
-
 	req := httptest.NewRequest(http.MethodPost, "/api/admin/genres", bytes.NewReader(p))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	req.Header.Set(echo.HeaderAuthorization, token)
 	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-
-	err = jwtMiddleware(config)(adminMiddleware(handler.Movie.CreateGenre))(c)
-	require.NoError(t, err)
+	testServer.ServeHTTP(rec, req)
 
 	var res Response[*Genre]
 	err = json.Unmarshal(rec.Body.Bytes(), &res)
@@ -337,18 +332,12 @@ func testUpdateGenre(t *testing.T, token string, ID int64, input GenreInput) (*G
 	p, err := json.Marshal(input)
 	require.NoError(t, err)
 
-	e := echo.New()
-
-	req := httptest.NewRequest(http.MethodPut, "/api/admin/genres/:id", bytes.NewReader(p))
+	uri := fmt.Sprintf("/api/admin/genres/%d", ID)
+	req := httptest.NewRequest(http.MethodPut, uri, bytes.NewReader(p))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	req.Header.Set(echo.HeaderAuthorization, token)
 	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-	c.SetParamNames("id")
-	c.SetParamValues(strconv.Itoa(int(ID)))
-
-	err = jwtMiddleware(config)(adminMiddleware(handler.Movie.UpdateGenreByID))(c)
-	require.NoError(t, err)
+	testServer.ServeHTTP(rec, req)
 
 	var res Response[*Genre]
 	err = json.Unmarshal(rec.Body.Bytes(), &res)
@@ -358,42 +347,32 @@ func testUpdateGenre(t *testing.T, token string, ID int64, input GenreInput) (*G
 }
 
 func testGetGenre(t *testing.T, token string, ID int64) (*Genre, *httptest.ResponseRecorder) {
-	e := echo.New()
 
-	req := httptest.NewRequest(http.MethodPut, "/api/admin/genres/:id", nil)
+	uri := fmt.Sprintf("/api/admin/genres/%d", ID)
+	req := httptest.NewRequest(http.MethodGet, uri, nil)
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	req.Header.Set(echo.HeaderAuthorization, token)
 	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-	c.SetParamNames("id")
-	c.SetParamValues(strconv.Itoa(int(ID)))
-
-	err := jwtMiddleware(config)(adminMiddleware(handler.Movie.GetGenreByID))(c)
-	require.NoError(t, err)
+	testServer.ServeHTTP(rec, req)
 
 	var res Response[*Genre]
-	err = json.Unmarshal(rec.Body.Bytes(), &res)
+	err := json.Unmarshal(rec.Body.Bytes(), &res)
 	require.NoError(t, err)
 
 	return res.Data, rec
 }
 
 func testDeleteGenre(t *testing.T, token string, ID int64) (*Genre, *httptest.ResponseRecorder) {
-	e := echo.New()
 
-	req := httptest.NewRequest(http.MethodDelete, "/api/admin/genres/:id", nil)
+	uri := fmt.Sprintf("/api/admin/genres/%d", ID)
+	req := httptest.NewRequest(http.MethodDelete, uri, nil)
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	req.Header.Set(echo.HeaderAuthorization, token)
 	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-	c.SetParamNames("id")
-	c.SetParamValues(strconv.Itoa(int(ID)))
-
-	err := jwtMiddleware(config)(adminMiddleware(handler.Movie.DeleteGenreByID))(c)
-	require.NoError(t, err)
+	testServer.ServeHTTP(rec, req)
 
 	var res Response[*Genre]
-	err = json.Unmarshal(rec.Body.Bytes(), &res)
+	err := json.Unmarshal(rec.Body.Bytes(), &res)
 	require.NoError(t, err)
 
 	return res.Data, rec
@@ -403,8 +382,6 @@ func testPaginationGenre(t *testing.T, token string, filter GenreFilter, page Pa
 	p, err := json.Marshal(filter)
 	require.NoError(t, err)
 
-	e := echo.New()
-
 	q := make(url.Values)
 	q.Set("page", strconv.Itoa(int(page.Page)))
 	q.Set("per_page", strconv.Itoa(int(page.Size)))
@@ -413,10 +390,7 @@ func testPaginationGenre(t *testing.T, token string, filter GenreFilter, page Pa
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	req.Header.Set(echo.HeaderAuthorization, token)
 	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-
-	err = jwtMiddleware(config)(adminMiddleware(handler.Movie.PaginationGenre))(c)
-	require.NoError(t, err)
+	testServer.ServeHTTP(rec, req)
 
 	var res Response[*Paginate[Genre]]
 	err = json.Unmarshal(rec.Body.Bytes(), &res)
@@ -429,15 +403,11 @@ func testCreateMovie(t *testing.T, token string, input MovieInput) (*Movie, *htt
 	p, err := json.Marshal(input)
 	require.NoError(t, err)
 
-	e := echo.New()
 	req := httptest.NewRequest(http.MethodPost, "/api/admin/movies", bytes.NewReader(p))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	req.Header.Set(echo.HeaderAuthorization, token)
 	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-
-	err = jwtMiddleware(config)(adminMiddleware(handler.Movie.Create))(c)
-	require.NoError(t, err)
+	testServer.ServeHTTP(rec, req)
 
 	var res Response[*Movie]
 	err = json.Unmarshal(rec.Body.Bytes(), &res)
@@ -450,17 +420,12 @@ func testUpdateMovie(t *testing.T, token string, ID int64, input MovieInput) (*M
 	p, err := json.Marshal(input)
 	require.NoError(t, err)
 
-	e := echo.New()
-	req := httptest.NewRequest(http.MethodPut, "/api/admin/movies/:id", bytes.NewReader(p))
+	uri := fmt.Sprintf("/api/admin/movies/%d", ID)
+	req := httptest.NewRequest(http.MethodPut, uri, bytes.NewReader(p))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	req.Header.Set(echo.HeaderAuthorization, token)
 	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-	c.SetParamNames("id")
-	c.SetParamValues(strconv.Itoa(int(ID)))
-
-	err = jwtMiddleware(config)(adminMiddleware(handler.Movie.UpdateByID))(c)
-	require.NoError(t, err)
+	testServer.ServeHTTP(rec, req)
 
 	var res Response[*Movie]
 	err = json.Unmarshal(rec.Body.Bytes(), &res)
@@ -469,38 +434,30 @@ func testUpdateMovie(t *testing.T, token string, ID int64, input MovieInput) (*M
 	return res.Data, rec
 }
 
-func testDeleteMovie(t *testing.T, token string, ID int64) *httptest.ResponseRecorder {
+func testDeleteMovie(token string, ID int64) *httptest.ResponseRecorder {
 
-	e := echo.New()
-	req := httptest.NewRequest(http.MethodDelete, "/api/admin/movies/:id", nil)
+	uri := fmt.Sprintf("/api/admin/movies/%d", ID)
+	req := httptest.NewRequest(http.MethodDelete, uri, nil)
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	req.Header.Set(echo.HeaderAuthorization, token)
 	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-	c.SetParamNames("id")
-	c.SetParamValues(strconv.Itoa(int(ID)))
+	testServer.ServeHTTP(rec, req)
 
-	err := jwtMiddleware(config)(adminMiddleware(handler.Movie.DeleteByID))(c)
-	require.NoError(t, err)
 	return rec
 }
 
 func testGetMovie(t *testing.T, token string, ID int64) (*Movie, *httptest.ResponseRecorder) {
 
-	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/api/admin/movies/:id", nil)
+	uri := fmt.Sprintf("/api/admin/movies/%d", ID)
+
+	req := httptest.NewRequest(http.MethodGet, uri, nil)
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	req.Header.Set(echo.HeaderAuthorization, token)
 	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-	c.SetParamNames("id")
-	c.SetParamValues(strconv.Itoa(int(ID)))
-
-	err := jwtMiddleware(config)(handler.Movie.GetByID)(c)
-	require.NoError(t, err)
+	testServer.ServeHTTP(rec, req)
 
 	var res Response[*Movie]
-	err = json.Unmarshal(rec.Body.Bytes(), &res)
+	err := json.Unmarshal(rec.Body.Bytes(), &res)
 	require.NoError(t, err)
 
 	return res.Data, rec
@@ -510,8 +467,6 @@ func testPaginationMovie(t *testing.T, token string, filter MovieFilter, page Pa
 	p, err := json.Marshal(filter)
 	require.NoError(t, err)
 
-	e := echo.New()
-
 	q := make(url.Values)
 	q.Set("page", strconv.Itoa(int(page.Page)))
 	q.Set("per_page", strconv.Itoa(int(page.Size)))
@@ -520,10 +475,7 @@ func testPaginationMovie(t *testing.T, token string, filter MovieFilter, page Pa
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	req.Header.Set(echo.HeaderAuthorization, token)
 	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-
-	err = jwtMiddleware(config)(handler.Movie.Pagination)(c)
-	require.NoError(t, err)
+	testServer.ServeHTTP(rec, req)
 
 	var res Response[*Paginate[Movie]]
 	err = json.Unmarshal(rec.Body.Bytes(), &res)

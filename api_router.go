@@ -33,12 +33,13 @@ func Route(e *echo.Echo, config *Config, handler *HandlerRegistry) {
 
 	admin := e.Group("/api/admin", jwtMiddleware(config), adminMiddleware)
 	{
-		admin.GET("/roles/", handler.User.PaginationRole)
+		admin.GET("/roles", handler.User.PaginationRole)
 		admin.GET("/roles/:id", handler.User.GetRoleByID)
 
 		admin.PUT("/user/:id", handler.User.ChangeRoleByID)
 
 		admin.GET("/genres", handler.Movie.PaginationGenre)
+		admin.GET("/genres/:id", handler.Movie.GetGenreByID)
 		admin.POST("/genres", handler.Movie.CreateGenre)
 		admin.PUT("/genres/:id", handler.Movie.UpdateGenreByID)
 		admin.DELETE("/genres/:id", handler.Movie.DeleteGenreByID)
@@ -53,7 +54,7 @@ func Route(e *echo.Echo, config *Config, handler *HandlerRegistry) {
 		admin.GET("/rooms", handler.Room.Pagination)
 		admin.POST("/rooms", handler.Room.Create)
 		admin.PUT("/rooms/:id", handler.Room.UpdateByID)
-		admin.DELETE("/rooms/:id", handler.Movie.DeleteByID)
+		admin.DELETE("/rooms/:id", handler.Room.DeleteByID)
 
 		admin.POST("/rooms/:id/seats", handler.Room.SetSeats)
 		admin.GET("/rooms/:id/seats", handler.Room.ListSeats)

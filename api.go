@@ -14,23 +14,10 @@ import (
 )
 
 func RunServer(config *Config, handler *HandlerRegistry) error {
-	e := echo.New()
-	e.HTTPErrorHandler = func(err error, c echo.Context) {
-		NewAPIErr(c, err)
-	}
-
-	e.Use(middleware.Secure())
-	e.Use(middleware.Recover())
+	e := setupServer(config, handler)
 	e.Use(middleware.CORS())
-	e.Use(middleware.RequestID())
 	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(rate.Limit(5))))
-
-	Route(e, config, handler)
-
-	e.GET("/", func(c echo.Context) error {
-		time.Sleep(5 * time.Second)
-		return c.JSON(200, "ok")
-	})
+	e.Use(middleware.Secure())
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
@@ -50,4 +37,16 @@ func RunServer(config *Config, handler *HandlerRegistry) error {
 	}
 
 	return nil
+}
+
+func setupServer(config *Config, handler *HandlerRegistry) *echo.Echo {
+	e := echo.New()
+	e.HTTPErrorHandler = func(err error, c echo.Context) {
+		NewAPIErr(c, err)
+	}
+	e.Use(middleware.Recover())
+	e.Use(middleware.RequestID())
+
+	Route(e, config, handler)
+	return e
 }

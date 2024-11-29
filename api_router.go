@@ -7,17 +7,18 @@ func Route(e *echo.Echo, config *Config, handler *HandlerRegistry) {
 	{
 		public.POST("/register", handler.User.Register)
 		public.POST("/login", handler.User.Login)
+
 		public.GET("/movies", handler.Movie.Pagination)
 		public.GET("/movies/:id", handler.Movie.GetByID)
+
+		public.GET("/showtimes/:id", handler.Showtime.GetByID)
+		public.GET("/showtimes/:id/seats", handler.Showtime.GetShowtimeSeatByID)
+		public.GET("/showtimes", handler.Showtime.Pagination)
 	}
 
 	loggedIn := e.Group("/api", jwtMiddleware(config))
 	{
 		loggedIn.GET("/user", handler.User.LoggedIn)
-
-		loggedIn.GET("/showtimes/:id", handler.Showtime.GetByID)
-		loggedIn.GET("/showtimes/:id/seats", handler.Showtime.GetShowtimeSeatByID)
-		loggedIn.GET("/showtimes", handler.Showtime.Pagination)
 
 		loggedIn.GET("/reservations/:id", handler.Reservation.UserGetByID)
 		loggedIn.GET("/reservations", handler.Reservation.UserGetPagination)

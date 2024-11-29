@@ -104,6 +104,14 @@ type Movie struct {
 	Genres   []string `json:"genres"`
 }
 
+func (m *Movie) ValidateDuration(startAt, endAt time.Time) error {
+	duration := endAt.Sub(startAt).Minutes()
+	if duration < float64(m.Duration) {
+		return NewErr(ErrInput, nil, "showtime duration less than movie duration")
+	}
+	return nil
+}
+
 type GenreFilter struct {
 	IDs   []int64  `json:"ids"`
 	Names []string `json:"names"`

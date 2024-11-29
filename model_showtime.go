@@ -74,3 +74,29 @@ type Showtime struct {
 	TotalSeat     int64  `json:"total_seat"`
 	AvailableSeat int64  `json:"available_seat"`
 }
+
+func (s *Showtime) ValidateOtherOverlapping(startAt, endAt time.Time) error {
+	errOverlapping := NewErr(ErrInput, nil, "showtime room overlapping with other showtime")
+
+	if s.StartAt.Equal(startAt) {
+		return errOverlapping
+	}
+	if s.StartAt.Equal(startAt) {
+		return errOverlapping
+	}
+	if startAt.After(s.StartAt) && startAt.Before(s.EndAt) {
+		return errOverlapping
+	}
+
+	if s.EndAt.Equal(startAt) {
+		return errOverlapping
+	}
+	if s.EndAt.Equal(endAt) {
+		return errOverlapping
+	}
+	if endAt.After(s.StartAt) && endAt.Before(s.EndAt) {
+		return errOverlapping
+	}
+
+	return nil
+}

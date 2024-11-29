@@ -1,6 +1,8 @@
 package main
 
-import "context"
+import (
+	"context"
+)
 
 func NewShowtimeService(config *Config, repo *RepositoryRegistry) *ShowtimeService {
 	return &ShowtimeService{
@@ -15,6 +17,32 @@ type ShowtimeService struct {
 }
 
 func (s *ShowtimeService) Create(ctx context.Context, input ShowtimeInput) (*Showtime, error) {
+
+	movie, err := s.repo.Movie.FindOne(ctx, MovieFilter{
+		IDs: []int64{input.MovieID},
+	})
+	if err != nil {
+		return nil, err
+	}
+	err = movie.ValidateDuration(input.StartAt, input.EndAt)
+	if err != nil {
+		return nil, err
+	}
+
+	cur, err := s.repo.Showtime.Find(ctx, ShowtimeFilter{
+		RoomIDs: []int64{input.RoomID},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	for _, showtime := range cur {
+		err = showtime.ValidateOtherOverlapping(input.StartAt, input.EndAt)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	newShowtime, err := NewShowtime(input)
 	if err != nil {
 		return nil, err
@@ -37,6 +65,34 @@ func (s *ShowtimeService) UpdateByID(ctx context.Context, ID int64, input Showti
 	err := input.Validate()
 	if err != nil {
 		return nil, err
+	}
+
+	movie, err := s.repo.Movie.FindOne(ctx, MovieFilter{
+		IDs: []int64{input.MovieID},
+	})
+	if err != nil {
+		return nil, err
+	}
+	err = movie.ValidateDuration(input.StartAt, input.EndAt)
+	if err != nil {
+		return nil, err
+	}
+
+	cur, err := s.repo.Showtime.Find(ctx, ShowtimeFilter{
+		RoomIDs: []int64{input.RoomID},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	for _, showtime := range cur {
+		if showtime.ID == ID {
+			continue
+		}
+		err = showtime.ValidateOtherOverlapping(input.StartAt, input.EndAt)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	err = s.repo.Showtime.UpdateByID(ctx, ID, input)

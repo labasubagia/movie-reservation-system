@@ -104,6 +104,29 @@ func TestReservation(t *testing.T) {
 			require.NotNil(t, reservation)
 		})
 
+		t.Run("CreateFailOverbook", func(t *testing.T) {
+			seats := replaceSeat(room.ID)
+
+			cart1, rec := testCreateCart(t, token, CartInput{ShowtimeID: showtime.ID, SeatID: seats[0].ID})
+			require.Equal(t, http.StatusOK, rec.Code)
+			require.NotNil(t, cart1)
+
+			cart2, rec := testCreateCart(t, token, CartInput{ShowtimeID: showtime.ID, SeatID: seats[1].ID})
+			require.Equal(t, http.StatusOK, rec.Code)
+			require.NotNil(t, cart2)
+
+			reservation, rec := testCreateReservation(t, token, ReservationInput{
+				CartIDs: []int64{cart1.ID, cart2.ID},
+			})
+			require.Equal(t, http.StatusOK, rec.Code)
+			require.NotNil(t, reservation)
+
+			_, rec = testCreateReservation(t, token, ReservationInput{
+				CartIDs: []int64{cart1.ID, cart2.ID},
+			})
+			require.Equal(t, http.StatusBadRequest, rec.Code)
+		})
+
 		t.Run("PayOK", func(t *testing.T) {
 			seats := replaceSeat(room.ID)
 

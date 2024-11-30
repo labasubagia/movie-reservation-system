@@ -112,6 +112,10 @@ func (m *Movie) ValidateDuration(startAt, endAt time.Time) error {
 	return nil
 }
 
+func (m *Movie) GetDuration() time.Duration {
+	return time.Duration(m.Duration * int64(time.Minute))
+}
+
 type GenreFilter struct {
 	IDs   []int64  `json:"ids"`
 	Names []string `json:"names"`

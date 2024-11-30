@@ -16,8 +16,6 @@ import (
 )
 
 func TestReservation(t *testing.T) {
-	var showtime *Showtime
-	var room *Room
 
 	// admin space
 	tokenAdmin := testLoginAdmin(t)
@@ -42,6 +40,9 @@ func TestReservation(t *testing.T) {
 	}
 
 	t.Run("ShowtimeIn3Days", func(t *testing.T) {
+
+		var showtime *Showtime
+		var room *Room
 
 		// admin auth
 		{
@@ -69,7 +70,7 @@ func TestReservation(t *testing.T) {
 				MovieID: movie.ID,
 				RoomID:  room.ID,
 				StartAt: showStartAt,
-				EndAt:   showStartAt.Add(2 * time.Hour),
+				EndAt:   showStartAt.Add(movie.GetDuration()),
 				Price:   50_000,
 			})
 			require.Equal(t, http.StatusOK, rec.Code)
@@ -265,6 +266,9 @@ func TestReservation(t *testing.T) {
 	})
 
 	t.Run("ShowtimeNow", func(t *testing.T) {
+		var showtime *Showtime
+		var room *Room
+
 		// admin auth
 		{
 			genre, rec := testCreateGenre(t, tokenAdmin, GenreInput{Name: randomString(4)})
@@ -291,7 +295,7 @@ func TestReservation(t *testing.T) {
 				MovieID: movie.ID,
 				RoomID:  room.ID,
 				StartAt: showStartAt,
-				EndAt:   showStartAt.Add(2 * time.Hour),
+				EndAt:   showStartAt.Add(movie.GetDuration()),
 				Price:   50_000,
 			})
 			require.Equal(t, http.StatusOK, rec.Code)
@@ -329,6 +333,84 @@ func TestReservation(t *testing.T) {
 			// failed to cancel when movie will play less then 6 hour
 			_, rec = testCancelReservation(t, token, reservation.ID)
 			require.Equal(t, http.StatusBadRequest, rec.Code)
+		})
+	})
+
+	t.Run("FailToReserveDifferentShowtime", func(t *testing.T) {
+		var room *Room
+		var showtime1, showtime2 *Showtime
+		var seats [5]Seat
+
+		// admin auth
+		{
+			genre, rec := testCreateGenre(t, tokenAdmin, GenreInput{Name: randomString(4)})
+			require.Equal(t, http.StatusOK, rec.Code)
+
+			movie, rec := testCreateMovie(t, tokenAdmin, MovieInput{
+				Title:       randomString(5),
+				ReleaseDate: time.Now(),
+				Director:    randomString(5),
+				Duration:    33,
+				PosterURL:   fmt.Sprintf("http://%s.com", randomString(5)),
+				Description: randomString(5),
+				GenreIDs:    []int64{genre.ID},
+			})
+			require.Equal(t, http.StatusOK, rec.Code)
+
+			room, rec = testCreateRoom(t, tokenAdmin, RoomInput{
+				Name: randomString(5),
+			})
+			require.Equal(t, http.StatusOK, rec.Code)
+
+			seats = replaceSeat(room.ID)
+
+			time1 := time.Now()
+			showtime1, rec = testCreateShowtime(t, tokenAdmin, ShowtimeInput{
+				MovieID: movie.ID,
+				RoomID:  room.ID,
+				StartAt: time1,
+				EndAt:   time1.Add(movie.GetDuration()),
+				Price:   50_000,
+			})
+			require.Equal(t, http.StatusOK, rec.Code)
+			require.NotNil(t, showtime1)
+
+			time2 := time.Now().Add(3 * 24 * time.Hour)
+			showtime2, rec = testCreateShowtime(t, tokenAdmin, ShowtimeInput{
+				MovieID: movie.ID,
+				RoomID:  room.ID,
+				StartAt: time2,
+				EndAt:   time2.Add(movie.GetDuration()),
+				Price:   50_000,
+			})
+			require.Equal(t, http.StatusOK, rec.Code)
+			require.NotNil(t, showtime2)
+		}
+
+		userInput := UserInput{
+			Email:    fmt.Sprintf("%s@gmail.com", randomString(5)),
+			Password: "12345678",
+		}
+		user, rec := testRegisterUser(t, userInput)
+		require.Equal(t, http.StatusOK, rec.Code)
+
+		token, rec := testLoginUser(t, UserInput{Email: user.Email, Password: userInput.Password})
+
+		t.Run("CreateFail", func(t *testing.T) {
+
+			cart1, rec := testCreateCart(t, token, CartInput{ShowtimeID: showtime1.ID, SeatID: seats[0].ID})
+			require.Equal(t, http.StatusOK, rec.Code)
+			require.NotNil(t, cart1)
+
+			cart2, rec := testCreateCart(t, token, CartInput{ShowtimeID: showtime2.ID, SeatID: seats[0].ID})
+			require.Equal(t, http.StatusOK, rec.Code)
+			require.NotNil(t, cart2)
+
+			reservation, rec := testCreateReservation(t, token, ReservationInput{
+				CartIDs: []int64{cart1.ID, cart2.ID},
+			})
+			require.Equal(t, http.StatusBadRequest, rec.Code)
+			require.Nil(t, reservation)
 		})
 	})
 }

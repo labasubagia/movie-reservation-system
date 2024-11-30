@@ -67,7 +67,7 @@ func TestCart(t *testing.T) {
 			MovieID: movie.ID,
 			RoomID:  room.ID,
 			StartAt: time.Now(),
-			EndAt:   time.Now().Add(2 * time.Hour),
+			EndAt:   time.Now().Add(movie.GetDuration()),
 			Price:   50_000,
 		})
 		require.Equal(t, http.StatusOK, rec.Code)

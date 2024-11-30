@@ -43,7 +43,7 @@ func TestCreateShowtimeOK(t *testing.T) {
 		MovieID: newMovie.ID,
 		RoomID:  newRoom.ID,
 		StartAt: time.Now(),
-		EndAt:   time.Now().Add(2 * time.Hour),
+		EndAt:   time.Now().Add(newMovie.GetDuration()),
 		Price:   50_000,
 	}
 
@@ -119,7 +119,7 @@ func TestCreateShowtimeFailOverlappingSameRoom(t *testing.T) {
 		MovieID: newMovie.ID,
 		RoomID:  newRoom.ID,
 		StartAt: time.Now(),
-		EndAt:   time.Now().Add(2 * time.Hour),
+		EndAt:   time.Now().Add(newMovie.GetDuration()),
 		Price:   50_000,
 	}
 
@@ -140,7 +140,7 @@ func TestCreateShowtimeFailNoRequiredData(t *testing.T) {
 		MovieID: -1, // movie not found
 		RoomID:  -1,
 		StartAt: time.Now(),
-		EndAt:   time.Now().Add(2 * time.Hour),
+		EndAt:   time.Now(),
 		Price:   50_000,
 	}
 
@@ -177,7 +177,7 @@ func TestUpdateShowtimeOK(t *testing.T) {
 		MovieID: newMovie.ID,
 		RoomID:  newRoom.ID,
 		StartAt: time.Now(),
-		EndAt:   time.Now().Add(2 * time.Hour),
+		EndAt:   time.Now().Add(newMovie.GetDuration()),
 		Price:   50_000,
 	}
 
@@ -223,7 +223,7 @@ func TestUpdateShowtimeFailNotFound(t *testing.T) {
 		MovieID: newMovie.ID,
 		RoomID:  newRoom.ID,
 		StartAt: time.Now(),
-		EndAt:   time.Now().Add(2 * time.Hour),
+		EndAt:   time.Now().Add(newMovie.GetDuration()),
 		Price:   50_000,
 	}
 
@@ -260,7 +260,7 @@ func TestGetShowtimeOK(t *testing.T) {
 		MovieID: newMovie.ID,
 		RoomID:  newRoom.ID,
 		StartAt: time.Now(),
-		EndAt:   time.Now().Add(2 * time.Hour),
+		EndAt:   time.Now().Add(newMovie.GetDuration()),
 		Price:   50_000,
 	}
 
@@ -315,7 +315,7 @@ func TestPaginateShowtimeOK(t *testing.T) {
 			MovieID: newMovie.ID,
 			RoomID:  newRoom.ID,
 			StartAt: time.Now(),
-			EndAt:   time.Now().Add(2 * time.Hour),
+			EndAt:   time.Now().Add(newMovie.GetDuration()),
 			Price:   50_000,
 		}
 
@@ -369,7 +369,7 @@ func TestDeleteShowtimeOK(t *testing.T) {
 		MovieID: newMovie.ID,
 		RoomID:  newRoom.ID,
 		StartAt: time.Now(),
-		EndAt:   time.Now().Add(2 * time.Hour),
+		EndAt:   time.Now().Add(newMovie.GetDuration()),
 		Price:   50_000,
 	}
 
@@ -418,7 +418,7 @@ func TestGetShowtimeSeatOK(t *testing.T) {
 		MovieID: newMovie.ID,
 		RoomID:  newRoom.ID,
 		StartAt: time.Now(),
-		EndAt:   time.Now().Add(2 * time.Hour),
+		EndAt:   time.Now().Add(newMovie.GetDuration()),
 		Price:   50_000,
 	}
 	newShowtime, rec := testCreateShowtime(t, token, showtimeInput)

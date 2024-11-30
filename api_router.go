@@ -24,6 +24,12 @@ func Route(e *echo.Echo, config *Config, handler *HandlerRegistry) {
 	{
 		loggedIn.GET("/user", handler.User.LoggedIn)
 
+		loggedIn.GET("/carts/:id", handler.Cart.UserGetByID)
+		loggedIn.GET("/carts", handler.Cart.UserGetPagination)
+		loggedIn.POST("/carts", handler.Cart.UserCreate)
+		loggedIn.PUT("/carts/:id", handler.Cart.UserUpdateByID)
+		loggedIn.DELETE("/carts/:id", handler.Cart.UserDeleteByID)
+
 		loggedIn.GET("/reservations/:id", handler.Reservation.UserGetByID)
 		loggedIn.GET("/reservations", handler.Reservation.UserGetPagination)
 		loggedIn.POST("/reservations", handler.Reservation.UserCreate)

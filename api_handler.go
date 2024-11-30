@@ -16,6 +16,7 @@ type HandlerRegistry struct {
 	Room        *RoomHandler
 	Showtime    *ShowtimeHandler
 	Reservation *ReservationHandler
+	Cart        *CartHandler
 }
 
 func NewHandler(config *Config, trxProvider *TransactionProvider) *HandlerRegistry {
@@ -25,5 +26,6 @@ func NewHandler(config *Config, trxProvider *TransactionProvider) *HandlerRegist
 		Room:        NewRoomHandler(config, trxProvider),
 		Showtime:    NewShowtimeHandler(config, trxProvider),
 		Reservation: NewReservationHandler(config, trxProvider),
+		Cart:        NewCartHandler(config, trxProvider),
 	}
 }

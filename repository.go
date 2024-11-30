@@ -8,6 +8,7 @@ type RepositoryRegistry struct {
 	Room        *RoomRepository
 	Showtime    *ShowtimeRepository
 	Reservation *ReservationRepository
+	Cart        *CartRepository
 }
 
 func NewRepositoryRegistry(tx pgx.Tx) *RepositoryRegistry {
@@ -17,5 +18,6 @@ func NewRepositoryRegistry(tx pgx.Tx) *RepositoryRegistry {
 		Room:        NewRoomRepository(tx),
 		Showtime:    NewShowtimeRepository(tx),
 		Reservation: NewReservationRepository(tx),
+		Cart:        NewCartRepository(tx),
 	}
 }

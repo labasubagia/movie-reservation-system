@@ -1,6 +1,9 @@
 package main
 
-import "context"
+import (
+	"context"
+	"time"
+)
 
 func NewReservationService(config *Config, repo *RepositoryRegistry) *ReservationService {
 	return &ReservationService{
@@ -16,31 +19,34 @@ type ReservationService struct {
 
 func (s *ReservationService) Create(ctx context.Context, input ReservationInput) (*Reservation, error) {
 
-	olds, err := s.repo.Reservation.Find(ctx, ReservationFilter{
-		UserIDs:     []int64{input.UserID},
-		ShowtimeIDs: []int64{input.ShowtimeID},
-		SeatIDs:     []int64{input.SeatID},
-		Statuses:    []string{string(ReservationPaid), string(ReservationUnpaid)},
-	})
+	err := input.Validate()
 	if err != nil {
 		return nil, err
 	}
 
-	oldMap := map[ReservationStatus]struct{}{}
-	for _, cur := range olds {
-		oldMap[ReservationStatus(cur.Status)] = struct{}{}
+	carts, err := s.repo.Cart.Find(ctx, CartFilter{IDs: input.CartIDs, UserIDs: []int64{input.UserID}})
+	if err != nil {
+		return nil, err
 	}
-	if _, ok := oldMap[ReservationPaid]; ok {
-		return nil, NewErr(ErrInput, nil, "you already paid this seat")
+	if len(carts) == 0 {
+		return nil, NewErr(ErrInput, nil, "no cart exists based on input")
 	}
-	if _, ok := oldMap[ReservationUnpaid]; ok {
-		return nil, NewErr(ErrInput, nil, "you already reserve this seat, please complete the transaction")
+
+	var totalPrice int64
+	showtimeSet := map[int64]struct{}{}
+	for _, cart := range carts {
+		showtimeSet[cart.ShowtimeID] = struct{}{}
+		if len(showtimeSet) > 1 {
+			return nil, NewErr(ErrInput, nil, "reservation can only created on cart with same showtime")
+		}
+		totalPrice += cart.Price
 	}
 
 	newReservation, err := NewReservation(input)
 	if err != nil {
 		return nil, err
 	}
+	newReservation.TotalPrice = totalPrice
 
 	ID, err := s.repo.Reservation.Create(ctx, newReservation)
 	if err != nil {
@@ -52,15 +58,32 @@ func (s *ReservationService) Create(ctx context.Context, input ReservationInput)
 		return nil, err
 	}
 
+	for _, cart := range carts {
+		item, err := NewReservationItem(ReservationItemInput{
+			ReservationID: reservation.ID,
+			UserID:        input.UserID,
+			ShowtimeID:    cart.ShowtimeID,
+			SeatID:        cart.SeatID,
+			TotalPrice:    cart.Price,
+		})
+		if err != nil {
+			return nil, err
+		}
+		_, err = s.repo.Reservation.CreateItem(ctx, item)
+		if err != nil {
+			return nil, err
+		}
+
+		err = s.repo.Cart.DeleteByID(ctx, cart.ID)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return reservation, nil
 }
 
-func (s *ReservationService) UserUpdateByID(ctx context.Context, userID, ID int64, input ReservationInput) (*Reservation, error) {
-	input.UserID = userID
-	err := input.Validate()
-	if err != nil {
-		return nil, err
-	}
+func (s *ReservationService) Pay(ctx context.Context, userID, ID int64) (*Reservation, error) {
 
 	old, err := s.repo.Reservation.FindOne(ctx, ReservationFilter{
 		IDs:      []int64{ID},
@@ -74,7 +97,56 @@ func (s *ReservationService) UserUpdateByID(ctx context.Context, userID, ID int6
 		return nil, NewErr(ErrInput, nil, "reservation not found")
 	}
 
-	err = s.repo.Reservation.UpdateByID(ctx, ID, input)
+	err = s.repo.Reservation.UpdateByID(ctx, ID, ReservationInput{
+		UserID:     userID,
+		Status:     ReservationPaid,
+		TotalPrice: old.TotalPrice,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	reservation, err := s.repo.Reservation.FindOne(ctx, ReservationFilter{IDs: []int64{ID}})
+	if err != nil {
+		return nil, err
+	}
+
+	return reservation, nil
+}
+
+func (s *ReservationService) Cancel(ctx context.Context, userID, ID int64) (*Reservation, error) {
+
+	old, err := s.repo.Reservation.FindOne(ctx, ReservationFilter{
+		IDs:       []int64{ID},
+		UserIDs:   []int64{userID},
+		Statuses:  []string{string(ReservationUnpaid)},
+		WithItems: true,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var minTime time.Time
+	for _, item := range old.Items {
+		if minTime.IsZero() {
+			minTime = item.ShowtimeStart
+		}
+		if minTime.After(item.ShowtimeStart) {
+			minTime = item.ShowtimeStart
+		}
+	}
+
+	diff := minTime.Sub(time.Now())
+	minimumTimeCancel := 6 * time.Hour
+	if diff < minimumTimeCancel {
+		return nil, NewErr(ErrInput, nil, "cannot cancel reservation below 6 hour showtime")
+	}
+
+	err = s.repo.Reservation.UpdateByID(ctx, ID, ReservationInput{
+		UserID:     userID,
+		Status:     ReservationCancelled,
+		TotalPrice: old.TotalPrice,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +173,7 @@ func (s *ReservationService) UserDeleteByID(ctx context.Context, userID, ID int6
 }
 
 func (s *ReservationService) UserGetByID(ctx context.Context, userID, ID int64) (*Reservation, error) {
-	return s.repo.Reservation.FindOne(ctx, ReservationFilter{IDs: []int64{ID}, UserIDs: []int64{userID}})
+	return s.repo.Reservation.FindOne(ctx, ReservationFilter{IDs: []int64{ID}, UserIDs: []int64{userID}, WithItems: true})
 }
 
 func (s *ReservationService) Pagination(ctx context.Context, filter ReservationFilter, page PaginateInput) (*Paginate[Reservation], error) {

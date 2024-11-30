@@ -188,7 +188,8 @@ func (r *ShowtimeRepository) Pagination(ctx context.Context, filter ShowtimeFilt
 			join rooms r on
 				r.id = s.room_id
 			left join seats st on st.room_id  = r.id
-			left join reservations rv on rv.showtime_id = s.id and rv.seat_id = st.id and rv.status != 'cancelled'
+			left join reservation_items rvi on rvi.showtime_id = s.id and rvi.seat_id = st.id
+			left join reservations rv on rv.id = rvi.reservation_id and rv.status != 'cancelled'
 			where s.id in (%s)
 			group by s.id, m.title , r."name"
 			order BY s.start_at asc, m.title asc
@@ -286,6 +287,18 @@ func (r *ShowtimeRepository) getFilterSQL(_ context.Context, filter ShowtimeFilt
 
 func (r *ShowtimeRepository) GetShowtimeSeats(ctx context.Context, showtimeID int64) ([]Seat, error) {
 	sql := `
+		with reserved_seat as (
+		select
+			ri.*
+		from
+			reservation_items ri
+		join reservations r on
+			ri.reservation_id = r.id
+		where
+			r.status = 'paid'::reservation_status
+			or (r.status = 'unpaid'::reservation_status
+				and r.created_at > now() - interval '30 minutes')
+		)
 		select
 			st.id as seat_id,
 			s.room_id,
@@ -293,16 +306,19 @@ func (r *ShowtimeRepository) GetShowtimeSeats(ctx context.Context, showtimeID in
 			st."name",
 			st.created_at,
 			st.updated_at,
-			r.id is null as is_available
+			rt.id is null as is_available
 		from
 			showtimes s
 		join seats st on
 			s.room_id = st.room_id
-		left join reservations r on
-			r.seat_id = st.id
-			and r.showtime_id = s.id
-			and r.status != 'cancelled'
+		left join reserved_seat rt on
+			rt.seat_id = st.id
+			and rt.showtime_id = s.id
 		where s.id = @showtime_id
+		order by
+			s.id,
+			st.room_id,
+			st."name"
 	`
 	rows, err := r.tx.Query(ctx, sql, pgx.NamedArgs{"showtime_id": showtimeID})
 	if err != nil {

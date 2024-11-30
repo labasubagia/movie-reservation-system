@@ -33,7 +33,8 @@ func Route(e *echo.Echo, config *Config, handler *HandlerRegistry) {
 		loggedIn.GET("/reservations/:id", handler.Reservation.UserGetByID)
 		loggedIn.GET("/reservations", handler.Reservation.UserGetPagination)
 		loggedIn.POST("/reservations", handler.Reservation.UserCreate)
-		loggedIn.PUT("/reservations/:id", handler.Reservation.UserUpdateByID)
+		loggedIn.PUT("/reservations/:id/pay", handler.Reservation.Pay)
+		loggedIn.PUT("/reservations/:id/cancel", handler.Reservation.Cancel)
 		loggedIn.DELETE("/reservations/:id", handler.Reservation.UserDeleteByID)
 	}
 

@@ -18,7 +18,7 @@ type ShowtimeInput struct {
 	RoomID  int64     `json:"room_id,omitempty"`
 	StartAt time.Time `json:"start_at,omitempty"`
 	EndAt   time.Time `json:"end_at,omitempty"`
-	Price   int       `json:"price,omitempty"`
+	Price   int64     `json:"price,omitempty"`
 }
 
 func (i *ShowtimeInput) Validate() error {
@@ -64,7 +64,7 @@ type Showtime struct {
 	RoomID    int64     `json:"room_id,omitempty"`
 	StartAt   time.Time `json:"start_at,omitempty"`
 	EndAt     time.Time `json:"end_at,omitempty"`
-	Price     int       `json:"price,omitempty"`
+	Price     int64     `json:"price,omitempty"`
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 

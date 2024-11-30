@@ -46,7 +46,7 @@ func (h *ReservationHandler) UserCreate(c echo.Context) error {
 	return c.JSON(http.StatusOK, Response[*Reservation]{Message: "ok", Data: reservation})
 }
 
-func (h *ReservationHandler) UserUpdateByID(c echo.Context) error {
+func (h *ReservationHandler) Pay(c echo.Context) error {
 	userID, _, _ := GetTokenInfo(c)
 
 	ctx := c.Request().Context()
@@ -56,17 +56,34 @@ func (h *ReservationHandler) UserUpdateByID(c echo.Context) error {
 		return NewAPIErr(c, NewErr(ErrInput, err, "id invalid"))
 	}
 
-	var input ReservationInput
-	if err := c.Bind(&input); err != nil {
+	var reservation *Reservation
+	err = h.trxProvider.Transact(ctx, func(service *ServiceRegistry) error {
+		reservation, err = service.Reservation.Pay(ctx, userID, int64(ID))
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
 		return NewAPIErr(c, err)
 	}
-	input.UserID = userID
 
-	c.Set(KeyInput, input)
+	return c.JSON(http.StatusOK, Response[*Reservation]{Message: "ok", Data: reservation})
+}
+
+func (h *ReservationHandler) Cancel(c echo.Context) error {
+	userID, _, _ := GetTokenInfo(c)
+
+	ctx := c.Request().Context()
+
+	ID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return NewAPIErr(c, NewErr(ErrInput, err, "id invalid"))
+	}
 
 	var reservation *Reservation
 	err = h.trxProvider.Transact(ctx, func(service *ServiceRegistry) error {
-		reservation, err = service.Reservation.UserUpdateByID(ctx, userID, int64(ID), input)
+		reservation, err = service.Reservation.Cancel(ctx, userID, int64(ID))
 		if err != nil {
 			return err
 		}

@@ -1,0 +1,811 @@
+definitions:
+  main.ChangeRoleByIDReq:
+    properties:
+      role_id:
+        type: integer
+    type: object
+  main.Genre:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  main.GenreFilter:
+    properties:
+      ids:
+        items:
+          type: integer
+        type: array
+      names:
+        items:
+          type: string
+        type: array
+    type: object
+  main.GenreInput:
+    properties:
+      name:
+        type: string
+    type: object
+  main.LoginUserReq:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  main.LoginUserRes:
+    properties:
+      token:
+        type: string
+    type: object
+  main.Movie:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      director:
+        type: string
+      duration:
+        type: integer
+      genre_ids:
+        description: relation
+        items:
+          type: integer
+        type: array
+      genres:
+        items:
+          type: string
+        type: array
+      id:
+        type: integer
+      poster_url:
+        type: string
+      release_date:
+        type: string
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  main.MovieFilter:
+    properties:
+      genre_ids:
+        items:
+          type: integer
+        type: array
+      ids:
+        items:
+          type: integer
+        type: array
+      search:
+        type: string
+      showtime_after:
+        type: string
+    type: object
+  main.MovieInput:
+    properties:
+      description:
+        type: string
+      director:
+        type: string
+      duration:
+        type: integer
+      genre_ids:
+        items:
+          type: integer
+        type: array
+      poster_url:
+        type: string
+      release_date:
+        type: string
+      title:
+        type: string
+    type: object
+  main.Paginate-main_Genre:
+    properties:
+      current_page:
+        type: integer
+      items:
+        items:
+          $ref: '#/definitions/main.Genre'
+        type: array
+      page_size:
+        type: integer
+      total_items:
+        type: integer
+      total_page:
+        type: integer
+    type: object
+  main.Paginate-main_Movie:
+    properties:
+      current_page:
+        type: integer
+      items:
+        items:
+          $ref: '#/definitions/main.Movie'
+        type: array
+      page_size:
+        type: integer
+      total_items:
+        type: integer
+      total_page:
+        type: integer
+    type: object
+  main.Paginate-main_Role:
+    properties:
+      current_page:
+        type: integer
+      items:
+        items:
+          $ref: '#/definitions/main.Role'
+        type: array
+      page_size:
+        type: integer
+      total_items:
+        type: integer
+      total_page:
+        type: integer
+    type: object
+  main.RegisterUserReq:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  main.Response-any:
+    properties:
+      data: {}
+      message:
+        type: string
+    type: object
+  main.Response-main_Genre:
+    properties:
+      data:
+        $ref: '#/definitions/main.Genre'
+      message:
+        type: string
+    type: object
+  main.Response-main_LoginUserRes:
+    properties:
+      data:
+        $ref: '#/definitions/main.LoginUserRes'
+      message:
+        type: string
+    type: object
+  main.Response-main_Movie:
+    properties:
+      data:
+        $ref: '#/definitions/main.Movie'
+      message:
+        type: string
+    type: object
+  main.Response-main_Paginate-main_Genre:
+    properties:
+      data:
+        $ref: '#/definitions/main.Paginate-main_Genre'
+      message:
+        type: string
+    type: object
+  main.Response-main_Paginate-main_Movie:
+    properties:
+      data:
+        $ref: '#/definitions/main.Paginate-main_Movie'
+      message:
+        type: string
+    type: object
+  main.Response-main_Paginate-main_Role:
+    properties:
+      data:
+        $ref: '#/definitions/main.Paginate-main_Role'
+      message:
+        type: string
+    type: object
+  main.Response-main_Role:
+    properties:
+      data:
+        $ref: '#/definitions/main.Role'
+      message:
+        type: string
+    type: object
+  main.Response-main_User:
+    properties:
+      data:
+        $ref: '#/definitions/main.User'
+      message:
+        type: string
+    type: object
+  main.Role:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  main.RoleFilter:
+    properties:
+      role_ids:
+        items:
+          type: integer
+        type: array
+      roles:
+        items:
+          type: string
+        type: array
+    type: object
+  main.User:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      role:
+        type: string
+      updated_at:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /api/admin/genres:
+    post:
+      consumes:
+      - application/json
+      description: admin create genre
+      parameters:
+      - description: bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: body request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.GenreInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Response-main_Genre'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.Response-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.Response-any'
+      summary: Create Genre
+      tags:
+      - movies
+  /api/admin/genres/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: admin delete delete by id
+      parameters:
+      - description: bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: genre id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Response-any'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.Response-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.Response-any'
+      summary: Delete Genre
+      tags:
+      - movies
+    put:
+      consumes:
+      - application/json
+      description: admin update genre by id
+      parameters:
+      - description: bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: genre id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: body request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.GenreInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Response-main_Genre'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.Response-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.Response-any'
+      summary: Update Genre
+      tags:
+      - movies
+  /api/admin/movies:
+    post:
+      consumes:
+      - application/json
+      description: admin create movie
+      parameters:
+      - description: bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: body request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.MovieInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Response-main_Movie'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.Response-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.Response-any'
+      summary: Create Movie
+      tags:
+      - movies
+  /api/admin/movies/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: admin delete movie by id
+      parameters:
+      - description: bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: movie id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Response-any'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.Response-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.Response-any'
+      summary: Delete Movie
+      tags:
+      - movies
+    put:
+      consumes:
+      - application/json
+      description: admin update movie by id
+      parameters:
+      - description: bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: movie id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: body request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.MovieInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Response-main_Movie'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.Response-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.Response-any'
+      summary: Update Movie
+      tags:
+      - movies
+  /api/admin/roles/{id}:
+    get:
+      consumes:
+      - application/json
+      description: admin get role by id
+      parameters:
+      - description: bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: role id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Response-main_Role'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.Response-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.Response-any'
+      summary: Get Role
+      tags:
+      - accounts
+  /api/admin/roles/filter:
+    post:
+      consumes:
+      - application/json
+      description: admin filter roles
+      parameters:
+      - description: bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: pagination page
+        in: query
+        name: page
+        type: integer
+      - description: pagination page size
+        in: query
+        name: per_page
+        type: integer
+      - description: filter
+        in: body
+        name: request
+        schema:
+          $ref: '#/definitions/main.RoleFilter'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Response-main_Paginate-main_Role'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.Response-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.Response-any'
+      summary: Filter Role
+      tags:
+      - accounts
+  /api/admin/user/{id}:
+    put:
+      consumes:
+      - application/json
+      description: admin change user role
+      parameters:
+      - description: bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: user id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: body request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.ChangeRoleByIDReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Response-main_User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.Response-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.Response-any'
+      summary: Change Role
+      tags:
+      - accounts
+  /api/genres/{id}:
+    get:
+      consumes:
+      - application/json
+      description: get genre by id
+      parameters:
+      - description: genre id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Response-any'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.Response-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.Response-any'
+      summary: Get Genre
+      tags:
+      - movies
+  /api/genres/filter:
+    post:
+      consumes:
+      - application/json
+      description: filter genre
+      parameters:
+      - description: pagination page
+        in: query
+        name: page
+        type: integer
+      - description: pagination page size
+        in: query
+        name: per_page
+        type: integer
+      - description: filter
+        in: body
+        name: request
+        schema:
+          $ref: '#/definitions/main.GenreFilter'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Response-main_Paginate-main_Genre'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.Response-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.Response-any'
+      summary: Filter Genre
+      tags:
+      - movies
+  /api/login:
+    post:
+      consumes:
+      - application/json
+      description: login using email and password
+      parameters:
+      - description: req
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.LoginUserReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Response-main_LoginUserRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.Response-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.Response-any'
+      summary: Login User
+      tags:
+      - accounts
+  /api/movies/{id}:
+    get:
+      consumes:
+      - application/json
+      description: get movie by id
+      parameters:
+      - description: movie id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Response-any'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.Response-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.Response-any'
+      summary: Get Movie
+      tags:
+      - movies
+  /api/movies/filter:
+    post:
+      consumes:
+      - application/json
+      description: filter movies
+      parameters:
+      - description: pagination page
+        in: query
+        name: page
+        type: integer
+      - description: pagination page size
+        in: query
+        name: per_page
+        type: integer
+      - description: filter
+        in: body
+        name: request
+        schema:
+          $ref: '#/definitions/main.MovieFilter'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Response-main_Paginate-main_Movie'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.Response-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.Response-any'
+      summary: Filter Movie
+      tags:
+      - movies
+  /api/register:
+    post:
+      consumes:
+      - application/json
+      description: register using email and password
+      parameters:
+      - description: req
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.RegisterUserReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Response-main_User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.Response-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.Response-any'
+      summary: Register New User
+      tags:
+      - accounts
+  /api/user:
+    get:
+      consumes:
+      - application/json
+      description: get information of current user
+      parameters:
+      - description: bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Response-main_User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.Response-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.Response-any'
+      summary: Current User
+      tags:
+      - accounts
+swagger: "2.0"

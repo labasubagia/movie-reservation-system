@@ -10,7 +10,10 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	echoSwagger "github.com/swaggo/echo-swagger"
 	"golang.org/x/time/rate"
+
+	_ "movie-reservation-system/docs"
 )
 
 func RunServer(config *Config, handler *HandlerRegistry) error {
@@ -39,8 +42,15 @@ func RunServer(config *Config, handler *HandlerRegistry) error {
 	return nil
 }
 
+//	@title			Movie Reservation System
+//	@version		1.0
+//	@description	This is API for movie reservation system.
+//	@host			http://localhost:8000
+//	@BasePath		/api
 func setupServer(config *Config, handler *HandlerRegistry) *echo.Echo {
 	e := echo.New()
+	e.GET("/swagger/*", echoSwagger.WrapHandler)
+
 	e.HTTPErrorHandler = func(err error, c echo.Context) {
 		NewAPIErr(c, err)
 	}

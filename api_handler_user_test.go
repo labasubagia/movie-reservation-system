@@ -145,16 +145,15 @@ func testLoginUser(t *testing.T, input UserInput) (token string, recorder *httpt
 	rec := httptest.NewRecorder()
 	testServer.ServeHTTP(rec, req)
 
-	var res Response[map[string]string]
+	var res Response[*LoginUserRes]
 	err = json.Unmarshal(rec.Body.Bytes(), &res)
 	require.NoError(t, err)
 
-	_, ok := res.Data["token"]
-	if !ok {
+	if res.Data == nil {
 		return "", rec
 	}
-	require.NotEmpty(t, res.Data["token"])
-	token = fmt.Sprintf("Bearer %s", res.Data["token"])
+	require.NotEmpty(t, res.Data.Token)
+	token = fmt.Sprintf("Bearer %s", res.Data.Token)
 	return token, rec
 }
 
@@ -174,7 +173,7 @@ func testCurrentUser(t *testing.T, token string) (*User, *httptest.ResponseRecor
 }
 
 func testChangeUserRole(t *testing.T, token string, ID, roleID int64) (*User, *httptest.ResponseRecorder) {
-	input := UserInput{RoleID: roleID}
+	input := ChangeRoleByIDReq{RoleID: roleID}
 	p, err := json.Marshal(input)
 	require.NoError(t, err)
 

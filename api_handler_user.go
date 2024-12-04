@@ -19,10 +19,25 @@ type UserHandler struct {
 	trxProvider *TransactionProvider
 }
 
+type RegisterUserReq struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+// @Summary		Register New User
+// @Description	register using email and password
+// @Tags			accounts
+// @Accept			json
+// @Param			request	body	RegisterUserReq	true	"req"
+// @Produce		json
+// @Success		200	{object}	Response[User]
+// @Failure		400	{object}	Response[any]
+// @Failure		500	{object}	Response[any]
+// @Router			/api/register [post]
 func (h *UserHandler) Register(c echo.Context) error {
 	ctx := c.Request().Context()
 
-	var input UserInput
+	var input RegisterUserReq
 	if err := c.Bind(&input); err != nil {
 		return NewAPIErr(c, err)
 	}
@@ -31,7 +46,7 @@ func (h *UserHandler) Register(c echo.Context) error {
 	var user *User
 	var err error
 	err = h.trxProvider.Transact(ctx, func(service *ServiceRegistry) error {
-		user, err = service.User.Register(ctx, input)
+		user, err = service.User.Register(ctx, UserInput{Email: input.Email, Password: input.Password})
 		if err != nil {
 			return err
 		}
@@ -44,6 +59,22 @@ func (h *UserHandler) Register(c echo.Context) error {
 	return c.JSON(http.StatusOK, Response[*User]{Message: "ok", Data: user})
 }
 
+type LoginUserReq = RegisterUserReq
+
+type LoginUserRes struct {
+	Token string `json:"token"`
+}
+
+// @Summary		Login User
+// @Description	login using email and password
+// @Tags			accounts
+// @Accept			json
+// @Param			request	body	LoginUserReq	true	"req"
+// @Produce		json
+// @Success		200	{object}	Response[LoginUserRes]
+// @Failure		400	{object}	Response[any]
+// @Failure		500	{object}	Response[any]
+// @Router			/api/login [post]
 func (h *UserHandler) Login(c echo.Context) error {
 	ctx := c.Request().Context()
 
@@ -66,9 +97,19 @@ func (h *UserHandler) Login(c echo.Context) error {
 		return NewAPIErr(c, err)
 	}
 
-	return c.JSON(http.StatusOK, Response[any]{Message: "ok", Data: map[string]string{"token": token}})
+	return c.JSON(http.StatusOK, Response[any]{Message: "ok", Data: LoginUserRes{Token: token}})
 }
 
+// @Summary		Current User
+// @Description	get information of current user
+// @Tags			accounts
+// @Accept			json
+// @Param			Authorization	header	string	true	"bearer token"
+// @Produce		json
+// @Success		200	{object}	Response[User]
+// @Failure		400	{object}	Response[any]
+// @Failure		500	{object}	Response[any]
+// @Router			/api/user [get]
 func (h *UserHandler) LoggedIn(c echo.Context) error {
 	ctx := c.Request().Context()
 	_, email, _ := GetTokenInfo(c)
@@ -89,6 +130,22 @@ func (h *UserHandler) LoggedIn(c echo.Context) error {
 	return c.JSON(http.StatusOK, Response[*User]{Message: "ok", Data: user})
 }
 
+type ChangeRoleByIDReq struct {
+	RoleID int64 `json:"role_id"`
+}
+
+// @Summary		Change Role
+// @Description	admin change user role
+// @Tags			accounts
+// @Accept			json
+// @Param			Authorization	header	string				true	"bearer token"
+// @Param			id				path	int					true	"user id"
+// @Param			request			body	ChangeRoleByIDReq	true	"body request"
+// @Produce		json
+// @Success		200	{object}	Response[User]
+// @Failure		400	{object}	Response[any]
+// @Failure		500	{object}	Response[any]
+// @Router			/api/admin/user/{id} [put]
 func (h *UserHandler) ChangeRoleByID(c echo.Context) error {
 	ctx := c.Request().Context()
 
@@ -97,7 +154,7 @@ func (h *UserHandler) ChangeRoleByID(c echo.Context) error {
 		return NewAPIErr(c, NewErr(ErrInput, err, "id invalid"))
 	}
 
-	var input UserInput
+	var input ChangeRoleByIDReq
 	if err := c.Bind(&input); err != nil {
 		return NewAPIErr(c, err)
 	}
@@ -105,7 +162,7 @@ func (h *UserHandler) ChangeRoleByID(c echo.Context) error {
 
 	var user *User
 	err = h.trxProvider.Transact(ctx, func(service *ServiceRegistry) error {
-		user, err = service.User.ChangeRoleByID(ctx, int64(ID), input)
+		user, err = service.User.ChangeRoleByID(ctx, int64(ID), UserInput{RoleID: input.RoleID})
 		if err != nil {
 			return err
 		}
@@ -118,6 +175,17 @@ func (h *UserHandler) ChangeRoleByID(c echo.Context) error {
 	return c.JSON(http.StatusOK, Response[*User]{Message: "ok", Data: user})
 }
 
+// @Summary		Get Role
+// @Description	admin get role by id
+// @Tags			accounts
+// @Accept			json
+// @Produce		json
+// @Param			Authorization	header		string	true	"bearer token"
+// @Param			id				path		int		true	"role id"
+// @Success		200				{object}	Response[Role]
+// @Failure		400				{object}	Response[any]
+// @Failure		500				{object}	Response[any]
+// @Router			/api/admin/roles/{id} [get]
 func (h *UserHandler) GetRoleByID(c echo.Context) error {
 	ctx := c.Request().Context()
 
@@ -141,6 +209,19 @@ func (h *UserHandler) GetRoleByID(c echo.Context) error {
 	return c.JSON(http.StatusOK, Response[*Role]{Message: "ok", Data: role})
 }
 
+// @Summary		Filter Role
+// @Description	admin filter roles
+// @Tags			accounts
+// @Accept			json
+// @Produce		json
+// @Param			Authorization	header		string		true	"bearer token"
+// @Param			page			query		int			false	"pagination page"
+// @Param			per_page		query		int			false	"pagination page size"
+// @Param			request			body		RoleFilter	false	"filter"
+// @Success		200				{object}	Response[Paginate[Role]]
+// @Failure		400				{object}	Response[any]
+// @Failure		500				{object}	Response[any]
+// @Router			/api/admin/roles/filter [post]
 func (h *UserHandler) PaginationRole(c echo.Context) error {
 	ctx := c.Request().Context()
 	page := GetPage(c)

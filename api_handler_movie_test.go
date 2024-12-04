@@ -67,16 +67,15 @@ func TestGetGenreOK(t *testing.T) {
 	require.Equal(t, http.StatusOK, rec.Code)
 	require.NotNil(t, newGenre)
 
-	cur, rec := testGetGenre(t, token, newGenre.ID)
+	cur, rec := testGetGenre(t, newGenre.ID)
 	require.Equal(t, http.StatusOK, rec.Code)
 	require.NotNil(t, cur)
 	require.Equal(t, newGenre.Name, cur.Name)
 }
 
 func TestGetGenreFailNotFound(t *testing.T) {
-	token := testLoginAdmin(t)
 
-	cur, rec := testGetGenre(t, token, -12)
+	cur, rec := testGetGenre(t, -12)
 	require.Equal(t, http.StatusNotFound, rec.Code)
 	require.Nil(t, cur)
 }
@@ -111,12 +110,12 @@ func TestPaginationGenreOK(t *testing.T) {
 		genreIDs = append(genreIDs, genre.ID)
 	}
 
-	p, rec := testPaginationGenre(t, token, GenreFilter{IDs: genreIDs}, PaginateInput{1, 2})
+	p, rec := testPaginationGenre(t, GenreFilter{IDs: genreIDs}, PaginateInput{1, 2})
 	require.Equal(t, http.StatusOK, rec.Code)
 	require.NotNil(t, p)
 	require.Len(t, p.Items, 2)
 
-	p, rec = testPaginationGenre(t, token, GenreFilter{IDs: genreIDs}, PaginateInput{1, 10})
+	p, rec = testPaginationGenre(t, GenreFilter{IDs: genreIDs}, PaginateInput{1, 10})
 	require.Equal(t, http.StatusOK, rec.Code)
 	require.NotNil(t, p)
 	require.Len(t, p.Items, 5)
@@ -261,12 +260,12 @@ func TestPaginationMovieOK(t *testing.T) {
 		movieIDs = append(movieIDs, newMovie.ID)
 	}
 
-	p, rec := testPaginationMovie(t, token, MovieFilter{IDs: movieIDs}, PaginateInput{1, 2})
+	p, rec := testPaginationMovie(t, MovieFilter{IDs: movieIDs}, PaginateInput{1, 2})
 	require.NotNil(t, p)
 	require.Equal(t, http.StatusOK, rec.Code)
 	require.Len(t, p.Items, 2)
 
-	p, rec = testPaginationMovie(t, token, MovieFilter{IDs: movieIDs}, PaginateInput{1, 10})
+	p, rec = testPaginationMovie(t, MovieFilter{IDs: movieIDs}, PaginateInput{1, 10})
 	require.NotNil(t, p)
 	require.Equal(t, http.StatusOK, rec.Code)
 	require.Len(t, p.Items, 5)
@@ -302,7 +301,7 @@ func TestGetMovieOK(t *testing.T) {
 	require.ElementsMatch(t, movieInput.GenreIDs, newMovie.GenreIDs)
 	require.ElementsMatch(t, genres, newMovie.Genres)
 
-	curMovie, rec := testGetMovie(t, token, newMovie.ID)
+	curMovie, rec := testGetMovie(t, newMovie.ID)
 	require.Equal(t, http.StatusOK, rec.Code)
 	require.NotNil(t, curMovie)
 
@@ -346,12 +345,11 @@ func testUpdateGenre(t *testing.T, token string, ID int64, input GenreInput) (*G
 	return res.Data, rec
 }
 
-func testGetGenre(t *testing.T, token string, ID int64) (*Genre, *httptest.ResponseRecorder) {
+func testGetGenre(t *testing.T, ID int64) (*Genre, *httptest.ResponseRecorder) {
 
-	uri := fmt.Sprintf("/api/admin/genres/%d", ID)
+	uri := fmt.Sprintf("/api/genres/%d", ID)
 	req := httptest.NewRequest(http.MethodGet, uri, nil)
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	req.Header.Set(echo.HeaderAuthorization, token)
 	rec := httptest.NewRecorder()
 	testServer.ServeHTTP(rec, req)
 
@@ -378,7 +376,7 @@ func testDeleteGenre(t *testing.T, token string, ID int64) (*Genre, *httptest.Re
 	return res.Data, rec
 }
 
-func testPaginationGenre(t *testing.T, token string, filter GenreFilter, page PaginateInput) (*Paginate[Genre], *httptest.ResponseRecorder) {
+func testPaginationGenre(t *testing.T, filter GenreFilter, page PaginateInput) (*Paginate[Genre], *httptest.ResponseRecorder) {
 	p, err := json.Marshal(filter)
 	require.NoError(t, err)
 
@@ -386,9 +384,8 @@ func testPaginationGenre(t *testing.T, token string, filter GenreFilter, page Pa
 	q.Set("page", strconv.Itoa(int(page.Page)))
 	q.Set("per_page", strconv.Itoa(int(page.Size)))
 
-	req := httptest.NewRequest(http.MethodGet, "/api/admin/genres?"+q.Encode(), bytes.NewReader(p))
+	req := httptest.NewRequest(http.MethodGet, "/api/genres?"+q.Encode(), bytes.NewReader(p))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	req.Header.Set(echo.HeaderAuthorization, token)
 	rec := httptest.NewRecorder()
 	testServer.ServeHTTP(rec, req)
 
@@ -446,13 +443,12 @@ func testDeleteMovie(token string, ID int64) *httptest.ResponseRecorder {
 	return rec
 }
 
-func testGetMovie(t *testing.T, token string, ID int64) (*Movie, *httptest.ResponseRecorder) {
+func testGetMovie(t *testing.T, ID int64) (*Movie, *httptest.ResponseRecorder) {
 
-	uri := fmt.Sprintf("/api/admin/movies/%d", ID)
+	uri := fmt.Sprintf("/api/movies/%d", ID)
 
 	req := httptest.NewRequest(http.MethodGet, uri, nil)
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	req.Header.Set(echo.HeaderAuthorization, token)
 	rec := httptest.NewRecorder()
 	testServer.ServeHTTP(rec, req)
 
@@ -463,7 +459,7 @@ func testGetMovie(t *testing.T, token string, ID int64) (*Movie, *httptest.Respo
 	return res.Data, rec
 }
 
-func testPaginationMovie(t *testing.T, token string, filter MovieFilter, page PaginateInput) (*Paginate[Movie], *httptest.ResponseRecorder) {
+func testPaginationMovie(t *testing.T, filter MovieFilter, page PaginateInput) (*Paginate[Movie], *httptest.ResponseRecorder) {
 	p, err := json.Marshal(filter)
 	require.NoError(t, err)
 
@@ -471,9 +467,8 @@ func testPaginationMovie(t *testing.T, token string, filter MovieFilter, page Pa
 	q.Set("page", strconv.Itoa(int(page.Page)))
 	q.Set("per_page", strconv.Itoa(int(page.Size)))
 
-	req := httptest.NewRequest(http.MethodGet, "/api/admin/movies?"+q.Encode(), bytes.NewReader(p))
+	req := httptest.NewRequest(http.MethodGet, "/api/movies?"+q.Encode(), bytes.NewReader(p))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	req.Header.Set(echo.HeaderAuthorization, token)
 	rec := httptest.NewRecorder()
 	testServer.ServeHTTP(rec, req)
 

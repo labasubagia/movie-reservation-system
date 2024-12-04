@@ -75,10 +75,10 @@ type LoginUserRes struct {
 //	@Accept			json
 //	@Param			request	body	LoginUserReq	true	"req"
 //	@Produce		json
-//	@Success		200			{object}	Response[LoginUserRes]
-//	@Failure		400			{object}	Response[any]
-//	@Failure		500			{object}	Response[any]
-//	@Router			/api/login 																				[post]
+//	@Success		200	{object}	Response[LoginUserRes]
+//	@Failure		400	{object}	Response[any]
+//	@Failure		500	{object}	Response[any]
+//	@Router			/api/login [post]
 func (h *UserHandler) Login(c echo.Context) error {
 	ctx := c.Request().Context()
 

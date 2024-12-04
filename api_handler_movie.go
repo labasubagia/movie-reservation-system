@@ -19,17 +19,19 @@ type MovieHandler struct {
 	trxProvider *TransactionProvider
 }
 
-// @Summary		Create Movie
-// @Description	admin create movie
-// @Tags			movies
-// @Accept			json
-// @Produce		json
-// @Param			Authorization	header		string		true	"bearer token"
-// @Param			request			body		MovieInput	true	"body request"
-// @Success		200				{object}	Response[Movie]
-// @Failure		400				{object}	Response[any]
-// @Failure		500				{object}	Response[any]
-// @Router			/api/admin/movies [post]
+// Create
+//
+//	@Summary		Create Movie
+//	@Description	admin create movie
+//	@Tags			movies
+//	@Accept			json
+//	@Produce		json
+//	@Param			Authorization	header		string		true	"bearer token"
+//	@Param			request			body		MovieInput	true	"body request"
+//	@Success		200				{object}	Response[Movie]
+//	@Failure		400				{object}	Response[any]
+//	@Failure		500				{object}	Response[any]
+//	@Router			/api/admin/movies [post]
 func (h *MovieHandler) Create(c echo.Context) error {
 	ctx := c.Request().Context()
 
@@ -55,18 +57,20 @@ func (h *MovieHandler) Create(c echo.Context) error {
 	return c.JSON(http.StatusOK, Response[any]{Message: "ok", Data: movie})
 }
 
-// @Summary		Update Movie
-// @Description	admin update movie by id
-// @Tags			movies
-// @Accept			json
-// @Produce		json
-// @Param			Authorization	header		string		true	"bearer token"
-// @Param			id				path		int			true	"movie id"
-// @Param			request			body		MovieInput	true	"body request"
-// @Success		200				{object}	Response[Movie]
-// @Failure		400				{object}	Response[any]
-// @Failure		500				{object}	Response[any]
-// @Router			/api/admin/movies/{id} [put]
+// UpdateByID
+//
+//	@Summary		Update Movie
+//	@Description	admin update movie by id
+//	@Tags			movies
+//	@Accept			json
+//	@Produce		json
+//	@Param			Authorization	header		string		true	"bearer token"
+//	@Param			id				path		int			true	"movie id"
+//	@Param			request			body		MovieInput	true	"body request"
+//	@Success		200				{object}	Response[Movie]
+//	@Failure		400				{object}	Response[any]
+//	@Failure		500				{object}	Response[any]
+//	@Router			/api/admin/movies/{id} [put]
 func (h *MovieHandler) UpdateByID(c echo.Context) error {
 	ctx := c.Request().Context()
 
@@ -96,17 +100,19 @@ func (h *MovieHandler) UpdateByID(c echo.Context) error {
 	return c.JSON(http.StatusOK, Response[*Movie]{Message: "ok", Data: movie})
 }
 
-// @Summary		Delete Movie
-// @Description	admin delete movie by id
-// @Tags			movies
-// @Accept			json
-// @Produce		json
-// @Param			Authorization	header		string	true	"bearer token"
-// @Param			id				path		int		true	"movie id"
-// @Success		200				{object}	Response[any]
-// @Failure		400				{object}	Response[any]
-// @Failure		500				{object}	Response[any]
-// @Router			/api/admin/movies/{id} [delete]
+// DeleteByID
+//
+//	@Summary		Delete Movie
+//	@Description	admin delete movie by id
+//	@Tags			movies
+//	@Accept			json
+//	@Produce		json
+//	@Param			Authorization	header		string	true	"bearer token"
+//	@Param			id				path		int		true	"movie id"
+//	@Success		200				{object}	Response[any]
+//	@Failure		400				{object}	Response[any]
+//	@Failure		500				{object}	Response[any]
+//	@Router			/api/admin/movies/{id} [delete]
 func (h *MovieHandler) DeleteByID(c echo.Context) error {
 	ctx := c.Request().Context()
 
@@ -125,16 +131,18 @@ func (h *MovieHandler) DeleteByID(c echo.Context) error {
 	return c.JSON(http.StatusOK, Response[any]{Message: "ok"})
 }
 
-// @Summary		Get Movie
-// @Description	get movie by id
-// @Tags			movies
-// @Accept			json
-// @Produce		json
-// @Param			id	path		int	true	"movie id"
-// @Success		200	{object}	Response[any]
-// @Failure		400	{object}	Response[any]
-// @Failure		500	{object}	Response[any]
-// @Router			/api/movies/{id} [get]
+// GetByID
+//
+//	@Summary		Get Movie
+//	@Description	get movie by id
+//	@Tags			movies
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		int	true	"movie id"
+//	@Success		200	{object}	Response[any]
+//	@Failure		400	{object}	Response[any]
+//	@Failure		500	{object}	Response[any]
+//	@Router			/api/movies/{id} [get]
 func (h *MovieHandler) GetByID(c echo.Context) error {
 	ctx := c.Request().Context()
 
@@ -158,18 +166,20 @@ func (h *MovieHandler) GetByID(c echo.Context) error {
 	return c.JSON(http.StatusOK, Response[*Movie]{Message: "ok", Data: movie})
 }
 
-// @Summary		Filter Movie
-// @Description	filter movies
-// @Tags			movies
-// @Accept			json
-// @Produce		json
-// @Param			page		query		int			false	"pagination page"
-// @Param			per_page	query		int			false	"pagination page size"
-// @Param			request		body		MovieFilter	false	"filter"
-// @Success		200			{object}	Response[Paginate[Movie]]
-// @Failure		400			{object}	Response[any]
-// @Failure		500			{object}	Response[any]
-// @Router			/api/movies/filter [post]
+// Pagination
+//
+//	@Summary		Filter Movie
+//	@Description	filter movies
+//	@Tags			movies
+//	@Accept			json
+//	@Produce		json
+//	@Param			page		query		int			false	"pagination page"
+//	@Param			per_page	query		int			false	"pagination page size"
+//	@Param			request		body		MovieFilter	false	"filter"
+//	@Success		200			{object}	Response[Paginate[Movie]]
+//	@Failure		400			{object}	Response[any]
+//	@Failure		500			{object}	Response[any]
+//	@Router			/api/movies/filter [post]
 func (h *MovieHandler) Pagination(c echo.Context) error {
 	ctx := c.Request().Context()
 	page := GetPage(c)
@@ -196,17 +206,19 @@ func (h *MovieHandler) Pagination(c echo.Context) error {
 	return c.JSON(http.StatusOK, Response[*Paginate[Movie]]{Message: "ok", Data: res})
 }
 
-// @Summary		Create Genre
-// @Description	admin create genre
-// @Tags			movies
-// @Accept			json
-// @Produce		json
-// @Param			Authorization	header		string		true	"bearer token"
-// @Param			request			body		GenreInput	true	"body request"
-// @Success		200				{object}	Response[Genre]
-// @Failure		400				{object}	Response[any]
-// @Failure		500				{object}	Response[any]
-// @Router			/api/admin/genres [post]
+// CreateGenre
+//
+//	@Summary		Create Genre
+//	@Description	admin create genre
+//	@Tags			movies
+//	@Accept			json
+//	@Produce		json
+//	@Param			Authorization	header		string		true	"bearer token"
+//	@Param			request			body		GenreInput	true	"body request"
+//	@Success		200				{object}	Response[Genre]
+//	@Failure		400				{object}	Response[any]
+//	@Failure		500				{object}	Response[any]
+//	@Router			/api/admin/genres [post]
 func (h *MovieHandler) CreateGenre(c echo.Context) error {
 	ctx := c.Request().Context()
 
@@ -232,18 +244,20 @@ func (h *MovieHandler) CreateGenre(c echo.Context) error {
 	return c.JSON(http.StatusOK, Response[*Genre]{Message: "ok", Data: genre})
 }
 
-// @Summary		Update Genre
-// @Description	admin update genre by id
-// @Tags			movies
-// @Accept			json
-// @Produce		json
-// @Param			Authorization	header		string		true	"bearer token"
-// @Param			id				path		int			true	"genre id"
-// @Param			request			body		GenreInput	true	"body request"
-// @Success		200				{object}	Response[Genre]
-// @Failure		400				{object}	Response[any]
-// @Failure		500				{object}	Response[any]
-// @Router			/api/admin/genres/{id} [put]
+// UpdateGenreByID
+//
+//	@Summary		Update Genre
+//	@Description	admin update genre by id
+//	@Tags			movies
+//	@Accept			json
+//	@Produce		json
+//	@Param			Authorization	header		string		true	"bearer token"
+//	@Param			id				path		int			true	"genre id"
+//	@Param			request			body		GenreInput	true	"body request"
+//	@Success		200				{object}	Response[Genre]
+//	@Failure		400				{object}	Response[any]
+//	@Failure		500				{object}	Response[any]
+//	@Router			/api/admin/genres/{id} [put]
 func (h *MovieHandler) UpdateGenreByID(c echo.Context) error {
 	ctx := c.Request().Context()
 
@@ -273,17 +287,19 @@ func (h *MovieHandler) UpdateGenreByID(c echo.Context) error {
 	return c.JSON(http.StatusOK, Response[*Genre]{Message: "ok", Data: movie})
 }
 
-// @Summary		Delete Genre
-// @Description	admin delete delete by id
-// @Tags			movies
-// @Accept			json
-// @Produce		json
-// @Param			Authorization	header		string	true	"bearer token"
-// @Param			id				path		int		true	"genre id"
-// @Success		200				{object}	Response[any]
-// @Failure		400				{object}	Response[any]
-// @Failure		500				{object}	Response[any]
-// @Router			/api/admin/genres/{id} [delete]
+// DeleteGenreByID
+//
+//	@Summary		Delete Genre
+//	@Description	admin delete delete by id
+//	@Tags			movies
+//	@Accept			json
+//	@Produce		json
+//	@Param			Authorization	header		string	true	"bearer token"
+//	@Param			id				path		int		true	"genre id"
+//	@Success		200				{object}	Response[any]
+//	@Failure		400				{object}	Response[any]
+//	@Failure		500				{object}	Response[any]
+//	@Router			/api/admin/genres/{id} [delete]
 func (h *MovieHandler) DeleteGenreByID(c echo.Context) error {
 	ctx := c.Request().Context()
 
@@ -302,16 +318,18 @@ func (h *MovieHandler) DeleteGenreByID(c echo.Context) error {
 	return c.JSON(http.StatusOK, Response[any]{Message: "ok"})
 }
 
-// @Summary		Get Genre
-// @Description	get genre by id
-// @Tags			movies
-// @Accept			json
-// @Produce		json
-// @Param			id	path		int	true	"genre id"
-// @Success		200	{object}	Response[any]
-// @Failure		400	{object}	Response[any]
-// @Failure		500	{object}	Response[any]
-// @Router			/api/genres/{id} [get]
+// GetGenreByID
+//
+//	@Summary		Get Genre
+//	@Description	get genre by id
+//	@Tags			movies
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		int	true	"genre id"
+//	@Success		200	{object}	Response[any]
+//	@Failure		400	{object}	Response[any]
+//	@Failure		500	{object}	Response[any]
+//	@Router			/api/genres/{id} [get]
 func (h *MovieHandler) GetGenreByID(c echo.Context) error {
 	ctx := c.Request().Context()
 
@@ -335,18 +353,20 @@ func (h *MovieHandler) GetGenreByID(c echo.Context) error {
 	return c.JSON(http.StatusOK, Response[*Genre]{Message: "ok", Data: genre})
 }
 
-// @Summary		Filter Genre
-// @Description	filter genre
-// @Tags			movies
-// @Accept			json
-// @Produce		json
-// @Param			page		query		int			false	"pagination page"
-// @Param			per_page	query		int			false	"pagination page size"
-// @Param			request		body		GenreFilter	false	"filter"
-// @Success		200			{object}	Response[Paginate[Genre]]
-// @Failure		400			{object}	Response[any]
-// @Failure		500			{object}	Response[any]
-// @Router			/api/genres/filter [post]
+// PaginationGenre
+//
+//	@Summary		Filter Genre
+//	@Description	filter genre
+//	@Tags			movies
+//	@Accept			json
+//	@Produce		json
+//	@Param			page		query		int			false	"pagination page"
+//	@Param			per_page	query		int			false	"pagination page size"
+//	@Param			request		body		GenreFilter	false	"filter"
+//	@Success		200			{object}	Response[Paginate[Genre]]
+//	@Failure		400			{object}	Response[any]
+//	@Failure		500			{object}	Response[any]
+//	@Router			/api/genres/filter [post]
 func (h *MovieHandler) PaginationGenre(c echo.Context) error {
 	ctx := c.Request().Context()
 	page := GetPage(c)

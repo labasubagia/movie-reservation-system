@@ -119,7 +119,6 @@ func (s *ReservationService) Cancel(ctx context.Context, userID, ID int64) (*Res
 	old, err := s.repo.Reservation.FindOne(ctx, ReservationFilter{
 		IDs:       []int64{ID},
 		UserIDs:   []int64{userID},
-		Statuses:  []string{string(ReservationUnpaid)},
 		WithItems: true,
 	})
 	if err != nil {

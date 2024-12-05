@@ -1,4 +1,60 @@
 definitions:
+  main.Cart:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      movie:
+        description: relation
+        type: string
+      price:
+        type: integer
+      room:
+        type: string
+      seat:
+        type: string
+      seat_id:
+        type: integer
+      showtime_end:
+        type: string
+      showtime_id:
+        type: integer
+      showtime_start:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  main.CartFilter:
+    properties:
+      ids:
+        items:
+          type: integer
+        type: array
+      seat_ids:
+        items:
+          type: integer
+        type: array
+      showtime_ids:
+        items:
+          type: integer
+        type: array
+      user_ids:
+        items:
+          type: integer
+        type: array
+    type: object
+  main.CartInput:
+    properties:
+      seat_id:
+        type: integer
+      showtime_id:
+        type: integer
+      user_id:
+        type: integer
+    type: object
   main.ChangeRoleByIDReq:
     properties:
       role_id:
@@ -86,6 +142,7 @@ definitions:
       search:
         type: string
       showtime_after:
+        example: "2006-01-02T15:04:05+08:00"
         type: string
     type: object
   main.MovieInput:
@@ -103,9 +160,25 @@ definitions:
       poster_url:
         type: string
       release_date:
+        example: "2006-01-02T15:04:05+08:00"
         type: string
       title:
         type: string
+    type: object
+  main.Paginate-main_Cart:
+    properties:
+      current_page:
+        type: integer
+      items:
+        items:
+          $ref: '#/definitions/main.Cart'
+        type: array
+      page_size:
+        type: integer
+      total_items:
+        type: integer
+      total_page:
+        type: integer
     type: object
   main.Paginate-main_Genre:
     properties:
@@ -137,6 +210,21 @@ definitions:
       total_page:
         type: integer
     type: object
+  main.Paginate-main_Reservation:
+    properties:
+      current_page:
+        type: integer
+      items:
+        items:
+          $ref: '#/definitions/main.Reservation'
+        type: array
+      page_size:
+        type: integer
+      total_items:
+        type: integer
+      total_page:
+        type: integer
+    type: object
   main.Paginate-main_Role:
     properties:
       current_page:
@@ -152,6 +240,36 @@ definitions:
       total_page:
         type: integer
     type: object
+  main.Paginate-main_Room:
+    properties:
+      current_page:
+        type: integer
+      items:
+        items:
+          $ref: '#/definitions/main.Room'
+        type: array
+      page_size:
+        type: integer
+      total_items:
+        type: integer
+      total_page:
+        type: integer
+    type: object
+  main.Paginate-main_Showtime:
+    properties:
+      current_page:
+        type: integer
+      items:
+        items:
+          $ref: '#/definitions/main.Showtime'
+        type: array
+      page_size:
+        type: integer
+      total_items:
+        type: integer
+      total_page:
+        type: integer
+    type: object
   main.RegisterUserReq:
     properties:
       email:
@@ -159,9 +277,109 @@ definitions:
       password:
         type: string
     type: object
+  main.Reservation:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      reservation_items:
+        description: relation
+        items:
+          $ref: '#/definitions/main.ReservationItem'
+        type: array
+      status:
+        $ref: '#/definitions/main.ReservationStatus'
+      total_price:
+        type: integer
+      updated_at:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  main.ReservationFilter:
+    properties:
+      ids:
+        items:
+          type: integer
+        type: array
+      statuses:
+        items:
+          type: string
+        type: array
+      user_ids:
+        items:
+          type: integer
+        type: array
+      with_items:
+        type: boolean
+    type: object
+  main.ReservationItem:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      movie:
+        description: relation
+        type: string
+      reservation_id:
+        type: integer
+      room:
+        type: string
+      seat:
+        type: string
+      seat_id:
+        type: integer
+      showtime_end:
+        type: string
+      showtime_id:
+        type: integer
+      showtime_start:
+        type: string
+      total_price:
+        type: integer
+      updated_at:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  main.ReservationStatus:
+    enum:
+    - unpaid
+    - paid
+    - cancelled
+    type: string
+    x-enum-varnames:
+    - ReservationUnpaid
+    - ReservationPaid
+    - ReservationCancelled
+  main.ReservationUserCreateReq:
+    properties:
+      cart_ids:
+        items:
+          type: integer
+        type: array
+    type: object
   main.Response-any:
     properties:
       data: {}
+      message:
+        type: string
+    type: object
+  main.Response-array_main_Seat:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/main.Seat'
+        type: array
+      message:
+        type: string
+    type: object
+  main.Response-main_Cart:
+    properties:
+      data:
+        $ref: '#/definitions/main.Cart'
       message:
         type: string
     type: object
@@ -186,6 +404,13 @@ definitions:
       message:
         type: string
     type: object
+  main.Response-main_Paginate-main_Cart:
+    properties:
+      data:
+        $ref: '#/definitions/main.Paginate-main_Cart'
+      message:
+        type: string
+    type: object
   main.Response-main_Paginate-main_Genre:
     properties:
       data:
@@ -200,6 +425,13 @@ definitions:
       message:
         type: string
     type: object
+  main.Response-main_Paginate-main_Reservation:
+    properties:
+      data:
+        $ref: '#/definitions/main.Paginate-main_Reservation'
+      message:
+        type: string
+    type: object
   main.Response-main_Paginate-main_Role:
     properties:
       data:
@@ -207,10 +439,52 @@ definitions:
       message:
         type: string
     type: object
+  main.Response-main_Paginate-main_Room:
+    properties:
+      data:
+        $ref: '#/definitions/main.Paginate-main_Room'
+      message:
+        type: string
+    type: object
+  main.Response-main_Paginate-main_Showtime:
+    properties:
+      data:
+        $ref: '#/definitions/main.Paginate-main_Showtime'
+      message:
+        type: string
+    type: object
+  main.Response-main_Reservation:
+    properties:
+      data:
+        $ref: '#/definitions/main.Reservation'
+      message:
+        type: string
+    type: object
   main.Response-main_Role:
     properties:
       data:
         $ref: '#/definitions/main.Role'
+      message:
+        type: string
+    type: object
+  main.Response-main_Room:
+    properties:
+      data:
+        $ref: '#/definitions/main.Room'
+      message:
+        type: string
+    type: object
+  main.Response-main_Seat:
+    properties:
+      data:
+        $ref: '#/definitions/main.Seat'
+      message:
+        type: string
+    type: object
+  main.Response-main_Showtime:
+    properties:
+      data:
+        $ref: '#/definitions/main.Showtime'
       message:
         type: string
     type: object
@@ -238,6 +512,127 @@ definitions:
         items:
           type: string
         type: array
+    type: object
+  main.Room:
+    properties:
+      capacity:
+        description: relation
+        type: integer
+      created_at:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  main.RoomFilter:
+    properties:
+      ids:
+        items:
+          type: integer
+        type: array
+      is_usable:
+        type: boolean
+      names:
+        items:
+          type: string
+        type: array
+    type: object
+  main.RoomInput:
+    properties:
+      name:
+        type: string
+    type: object
+  main.Seat:
+    properties:
+      additional_price:
+        type: integer
+      created_at:
+        type: string
+      id:
+        type: integer
+      is_available:
+        description: relation
+        type: boolean
+      name:
+        type: string
+      room_id:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  main.SeatInput:
+    properties:
+      additional_price:
+        type: integer
+      name:
+        type: string
+      room_id:
+        type: integer
+    type: object
+  main.Showtime:
+    properties:
+      available_seat:
+        type: integer
+      created_at:
+        type: string
+      end_at:
+        type: string
+      id:
+        type: integer
+      movie_id:
+        type: integer
+      movie_title:
+        description: relation
+        type: string
+      price:
+        type: integer
+      room_id:
+        type: integer
+      room_name:
+        type: string
+      start_at:
+        type: string
+      total_seat:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  main.ShowtimeFilter:
+    properties:
+      after:
+        description: only list showtime after/equal this time
+        example: "2006-01-02T15:04:05+08:00"
+        type: string
+      ids:
+        items:
+          type: integer
+        type: array
+      movie_ids:
+        items:
+          type: integer
+        type: array
+      room_ids:
+        items:
+          type: integer
+        type: array
+    type: object
+  main.ShowtimeInput:
+    properties:
+      end_at:
+        example: "2006-01-02T15:05:05+08:00"
+        type: string
+      movie_id:
+        type: integer
+      price:
+        type: integer
+      room_id:
+        type: integer
+      start_at:
+        example: "2006-01-02T15:04:05+08:00"
+        type: string
     type: object
   main.User:
     properties:
@@ -547,6 +942,264 @@ paths:
       summary: Filter Role
       tags:
       - accounts
+  /api/admin/rooms:
+    post:
+      consumes:
+      - application/json
+      description: admin create room
+      parameters:
+      - description: bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: body request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.RoomInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Response-main_Room'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.Response-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.Response-any'
+      summary: Create Room
+      tags:
+      - rooms
+  /api/admin/rooms/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: admin delete room by id
+      parameters:
+      - description: bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: room id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Response-any'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.Response-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.Response-any'
+      summary: Delete Room
+      tags:
+      - rooms
+    put:
+      consumes:
+      - application/json
+      description: admin update room by id
+      parameters:
+      - description: bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: room id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: body request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.RoomInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Response-main_Room'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.Response-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.Response-any'
+      summary: Update Room
+      tags:
+      - rooms
+  /api/admin/rooms/{id}/seats:
+    post:
+      consumes:
+      - application/json
+      description: admin set seat for room by room id
+      parameters:
+      - description: bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: room id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: body request
+        in: body
+        name: request
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/main.SeatInput'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Response-main_Room'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.Response-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.Response-any'
+      summary: Set room seats
+      tags:
+      - rooms
+  /api/admin/showtimes:
+    post:
+      consumes:
+      - application/json
+      description: admin create showtime
+      parameters:
+      - description: bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: body request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.ShowtimeInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Response-main_Showtime'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.Response-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.Response-any'
+      summary: Create Showtime
+      tags:
+      - schedules
+  /api/admin/showtimes/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: admin delete showtime by id
+      parameters:
+      - description: bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: showtime id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Response-any'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.Response-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.Response-any'
+      summary: Delete Showtime
+      tags:
+      - schedules
+    put:
+      consumes:
+      - application/json
+      description: admin update showtime by id
+      parameters:
+      - description: bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: movie id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: body request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.ShowtimeInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Response-main_Showtime'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.Response-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.Response-any'
+      summary: Update Showtime
+      tags:
+      - schedules
   /api/admin/user/{id}:
     put:
       consumes:
@@ -587,6 +1240,189 @@ paths:
       summary: Change Role
       tags:
       - accounts
+  /api/carts:
+    post:
+      consumes:
+      - application/json
+      description: user create cart showtime
+      parameters:
+      - description: bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: body request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.CartInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Response-main_Cart'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.Response-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.Response-any'
+      summary: Create Cart
+      tags:
+      - carts
+  /api/carts/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: user delete cart by cart by id
+      parameters:
+      - description: bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: cart id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Response-any'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.Response-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.Response-any'
+      summary: Delete Cart
+      tags:
+      - carts
+    get:
+      consumes:
+      - application/json
+      description: user get cart by cart id
+      parameters:
+      - description: bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: cart id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Response-main_Cart'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.Response-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.Response-any'
+      summary: Get Cart
+      tags:
+      - carts
+    put:
+      consumes:
+      - application/json
+      description: user update cart by id
+      parameters:
+      - description: bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: cart id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: body request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.CartInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Response-main_Cart'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.Response-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.Response-any'
+      summary: Update Cart
+      tags:
+      - carts
+  /api/carts/filter:
+    post:
+      consumes:
+      - application/json
+      description: user filter own carts
+      parameters:
+      - description: bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: pagination page
+        in: query
+        name: page
+        type: integer
+      - description: pagination page size
+        in: query
+        name: per_page
+        type: integer
+      - description: filter
+        in: body
+        name: request
+        schema:
+          $ref: '#/definitions/main.CartFilter'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Response-main_Paginate-main_Cart'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.Response-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.Response-any'
+      summary: Filter Cart
+      tags:
+      - carts
   /api/genres/{id}:
     get:
       consumes:
@@ -700,7 +1536,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/main.Response-any'
+            $ref: '#/definitions/main.Response-main_Movie'
         "400":
           description: Bad Request
           schema:
@@ -779,6 +1615,408 @@ paths:
       summary: Register New User
       tags:
       - accounts
+  /api/reservations:
+    post:
+      consumes:
+      - application/json
+      description: user create reservations
+      parameters:
+      - description: bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: body request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.ReservationUserCreateReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Response-main_Reservation'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.Response-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.Response-any'
+      summary: Create Reservation
+      tags:
+      - reservations
+  /api/reservations/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: user delete reservation by reservation by id
+      parameters:
+      - description: bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: reservation id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Response-any'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.Response-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.Response-any'
+      summary: Delete Reservation
+      tags:
+      - reservations
+    get:
+      consumes:
+      - application/json
+      description: user update reservation by id
+      parameters:
+      - description: bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: reservation id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Response-main_Reservation'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.Response-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.Response-any'
+      summary: Update Reservation
+      tags:
+      - reservations
+  /api/reservations/{id}/cancel:
+    put:
+      consumes:
+      - application/json
+      description: user cancel reservation by id
+      parameters:
+      - description: bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: reservation id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Response-main_Reservation'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.Response-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.Response-any'
+      summary: Cancel Reservation
+      tags:
+      - reservations
+  /api/reservations/{id}/pay:
+    put:
+      consumes:
+      - application/json
+      description: user pay reservation by id
+      parameters:
+      - description: bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: reservation id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Response-main_Reservation'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.Response-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.Response-any'
+      summary: Pay Reservation
+      tags:
+      - reservations
+  /api/reservations/filter:
+    post:
+      consumes:
+      - application/json
+      description: user filter own reservations
+      parameters:
+      - description: bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: pagination page
+        in: query
+        name: page
+        type: integer
+      - description: pagination page size
+        in: query
+        name: per_page
+        type: integer
+      - description: filter
+        in: body
+        name: request
+        schema:
+          $ref: '#/definitions/main.ReservationFilter'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Response-main_Paginate-main_Reservation'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.Response-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.Response-any'
+      summary: Filter Reservation
+      tags:
+      - reservations
+  /api/rooms/{id}:
+    get:
+      consumes:
+      - application/json
+      description: get room by id
+      parameters:
+      - description: room id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Response-main_Room'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.Response-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.Response-any'
+      summary: Get Room
+      tags:
+      - rooms
+  /api/rooms/{id}/seats:
+    get:
+      consumes:
+      - application/json
+      description: get seats by room id
+      parameters:
+      - description: room id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Response-main_Seat'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.Response-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.Response-any'
+      summary: Get room seats
+      tags:
+      - rooms
+  /api/rooms/filter:
+    post:
+      consumes:
+      - application/json
+      description: filter rooms
+      parameters:
+      - description: pagination page
+        in: query
+        name: page
+        type: integer
+      - description: pagination page size
+        in: query
+        name: per_page
+        type: integer
+      - description: filter
+        in: body
+        name: request
+        schema:
+          $ref: '#/definitions/main.RoomFilter'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Response-main_Paginate-main_Room'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.Response-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.Response-any'
+      summary: Filter Room
+      tags:
+      - rooms
+  /api/showtimes/{id}:
+    get:
+      consumes:
+      - application/json
+      description: get showtime by id
+      parameters:
+      - description: showtime id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Response-main_Showtime'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.Response-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.Response-any'
+      summary: Get Showtime
+      tags:
+      - schedules
+  /api/showtimes/{id}/seats:
+    get:
+      consumes:
+      - application/json
+      description: get showtime seats by showtime is
+      parameters:
+      - description: showtime id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Response-array_main_Seat'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.Response-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.Response-any'
+      summary: Get Showtime seats
+      tags:
+      - schedules
+  /api/showtimes/filter:
+    post:
+      consumes:
+      - application/json
+      description: filter showtimes
+      parameters:
+      - description: pagination page
+        in: query
+        name: page
+        type: integer
+      - description: pagination page size
+        in: query
+        name: per_page
+        type: integer
+      - description: filter
+        in: body
+        name: request
+        schema:
+          $ref: '#/definitions/main.ShowtimeFilter'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Response-main_Paginate-main_Showtime'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.Response-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.Response-any'
+      summary: Filter Showtime
+      tags:
+      - schedules
   /api/user:
     get:
       consumes:

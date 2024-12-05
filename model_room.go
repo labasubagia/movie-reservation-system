@@ -91,7 +91,7 @@ type Seat struct {
 	UpdatedAt       time.Time `json:"updated_at"`
 
 	// relation
-	IsAvailable bool `json:"is_available"`
+	IsAvailable bool `json:"is_available,omitempty"`
 }
 
 func NewSeat(input SeatInput) (*Seat, error) {

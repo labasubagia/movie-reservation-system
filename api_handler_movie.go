@@ -139,7 +139,7 @@ func (h *MovieHandler) DeleteByID(c echo.Context) error {
 //	@Accept			json
 //	@Produce		json
 //	@Param			id	path		int	true	"movie id"
-//	@Success		200	{object}	Response[any]
+//	@Success		200	{object}	Response[Movie]
 //	@Failure		400	{object}	Response[any]
 //	@Failure		500	{object}	Response[any]
 //	@Router			/api/movies/{id} [get]

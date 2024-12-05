@@ -8,7 +8,7 @@ import (
 
 type MovieInput struct {
 	Title       string    `json:"title,omitempty"`
-	ReleaseDate time.Time `json:"release_date,omitempty"`
+	ReleaseDate time.Time `json:"release_date,omitempty" example:"2006-01-02T15:04:05+08:00"`
 	Director    string    `json:"director,omitempty"`
 	Duration    int64     `json:"duration,omitempty"`
 	PosterURL   string    `json:"poster_url,omitempty"`
@@ -55,7 +55,7 @@ type MovieFilter struct {
 	IDs           []int64   `json:"ids"`
 	Search        string    `json:"search"`
 	GenreIDs      []int64   `json:"genre_ids"`
-	ShowtimeAfter time.Time `json:"showtime_after"`
+	ShowtimeAfter time.Time `json:"showtime_after" example:"2006-01-02T15:04:05+08:00"`
 }
 
 func (f *MovieFilter) Validate() error {

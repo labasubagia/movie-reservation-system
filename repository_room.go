@@ -262,7 +262,7 @@ func (r *RoomRepository) FilterSeats(ctx context.Context, filter SeatFilter) ([]
 
 	sql := fmt.Sprintf(
 		`
-			select s.id, s.room_id, s.name, s.additional_price
+			select s.id, s.room_id, s.name, s.additional_price, s.created_at, s.updated_at
 			from public.seats s
 			where s.id in (%s)
 			order by s.name asc, s.room_id asc, s.id asc
@@ -278,7 +278,14 @@ func (r *RoomRepository) FilterSeats(ctx context.Context, filter SeatFilter) ([]
 	var seats []Seat
 	for rows.Next() {
 		var seat Seat
-		err := rows.Scan(&seat.ID, &seat.RoomID, &seat.Name, &seat.AdditionalPrice)
+		err := rows.Scan(
+			&seat.ID,
+			&seat.RoomID,
+			&seat.Name,
+			&seat.AdditionalPrice,
+			&seat.CreatedAt,
+			&seat.UpdatedAt,
+		)
 		if err != nil {
 			return nil, NewSQLErr(err)
 		}

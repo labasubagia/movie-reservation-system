@@ -19,6 +19,19 @@ type RoomHandler struct {
 	trxProvider *TransactionProvider
 }
 
+// Create
+//
+//	@Summary		Create Room
+//	@Description	admin create room
+//	@Tags			rooms
+//	@Accept			json
+//	@Produce		json
+//	@Param			Authorization	header		string		true	"bearer token"
+//	@Param			request			body		RoomInput	true	"body request"
+//	@Success		200				{object}	Response[Room]
+//	@Failure		400				{object}	Response[any]
+//	@Failure		500				{object}	Response[any]
+//	@Router			/api/admin/rooms [post]
 func (h *RoomHandler) Create(c echo.Context) error {
 	ctx := c.Request().Context()
 
@@ -44,6 +57,20 @@ func (h *RoomHandler) Create(c echo.Context) error {
 	return c.JSON(http.StatusOK, Response[*Room]{Message: "ok", Data: room})
 }
 
+// UpdateByID
+//
+//	@Summary		Update Room
+//	@Description	admin update room by id
+//	@Tags			rooms
+//	@Accept			json
+//	@Produce		json
+//	@Param			Authorization	header		string		true	"bearer token"
+//	@Param			id				path		int			true	"room id"
+//	@Param			request			body		RoomInput	true	"body request"
+//	@Success		200				{object}	Response[Room]
+//	@Failure		400				{object}	Response[any]
+//	@Failure		500				{object}	Response[any]
+//	@Router			/api/admin/rooms/{id} [put]
 func (h *RoomHandler) UpdateByID(c echo.Context) error {
 	ctx := c.Request().Context()
 
@@ -73,6 +100,18 @@ func (h *RoomHandler) UpdateByID(c echo.Context) error {
 	return c.JSON(http.StatusOK, Response[*Room]{Message: "ok", Data: room})
 }
 
+// GetByID
+//
+//	@Summary		Get Room
+//	@Description	get room by id
+//	@Tags			rooms
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		int	true	"room id"
+//	@Success		200	{object}	Response[Room]
+//	@Failure		400	{object}	Response[any]
+//	@Failure		500	{object}	Response[any]
+//	@Router			/api/rooms/{id} [get]
 func (h *RoomHandler) GetByID(c echo.Context) error {
 	ctx := c.Request().Context()
 
@@ -96,6 +135,19 @@ func (h *RoomHandler) GetByID(c echo.Context) error {
 	return c.JSON(http.StatusOK, Response[*Room]{Message: "ok", Data: room})
 }
 
+// DeleteByID
+//
+//	@Summary		Delete Room
+//	@Description	admin delete room by id
+//	@Tags			rooms
+//	@Accept			json
+//	@Produce		json
+//	@Param			Authorization	header		string	true	"bearer token"
+//	@Param			id				path		int		true	"room id"
+//	@Success		200				{object}	Response[any]
+//	@Failure		400				{object}	Response[any]
+//	@Failure		500				{object}	Response[any]
+//	@Router			/api/admin/rooms/{id} [delete]
 func (h *RoomHandler) DeleteByID(c echo.Context) error {
 	ctx := c.Request().Context()
 
@@ -114,6 +166,20 @@ func (h *RoomHandler) DeleteByID(c echo.Context) error {
 	return c.JSON(http.StatusOK, Response[any]{Message: "ok"})
 }
 
+// Pagination
+//
+//	@Summary		Filter Room
+//	@Description	filter rooms
+//	@Tags			rooms
+//	@Accept			json
+//	@Produce		json
+//	@Param			page		query		int			false	"pagination page"
+//	@Param			per_page	query		int			false	"pagination page size"
+//	@Param			request		body		RoomFilter	false	"filter"
+//	@Success		200			{object}	Response[Paginate[Room]]
+//	@Failure		400			{object}	Response[any]
+//	@Failure		500			{object}	Response[any]
+//	@Router			/api/rooms/filter [post]
 func (h *RoomHandler) Pagination(c echo.Context) error {
 	ctx := c.Request().Context()
 	page := GetPage(c)
@@ -140,6 +206,20 @@ func (h *RoomHandler) Pagination(c echo.Context) error {
 	return c.JSON(http.StatusOK, Response[*Paginate[Room]]{Message: "ok", Data: res})
 }
 
+// SetSeats
+//
+//	@Summary		Set room seats
+//	@Description	admin set seat for room by room id
+//	@Tags			rooms
+//	@Accept			json
+//	@Produce		json
+//	@Param			Authorization	header		string		true	"bearer token"
+//	@Param			id				path		int			true	"room id"
+//	@Param			request			body		[]SeatInput	true	"body request"
+//	@Success		200				{object}	Response[Room]
+//	@Failure		400				{object}	Response[any]
+//	@Failure		500				{object}	Response[any]
+//	@Router			/api/admin/rooms/{id}/seats [post]
 func (h *RoomHandler) SetSeats(c echo.Context) error {
 	ctx := c.Request().Context()
 
@@ -169,6 +249,18 @@ func (h *RoomHandler) SetSeats(c echo.Context) error {
 	return c.JSON(http.StatusOK, Response[any]{Message: "ok"})
 }
 
+// ListSeats
+//
+//	@Summary		Get room seats
+//	@Description	get seats by room id
+//	@Tags			rooms
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		int	true	"room id"
+//	@Success		200	{object}	Response[Seat]
+//	@Failure		400	{object}	Response[any]
+//	@Failure		500	{object}	Response[any]
+//	@Router			/api/rooms/{id}/seats [get]
 func (h *RoomHandler) ListSeats(c echo.Context) error {
 	ctx := c.Request().Context()
 

@@ -6,7 +6,7 @@ type ShowtimeFilter struct {
 	IDs      []int64   `json:"ids"`
 	MovieIDs []int64   `json:"movie_ids"`
 	RoomIDs  []int64   `json:"room_ids"`
-	After    time.Time `json:"after"` // only list showtime after/equal this time
+	After    time.Time `json:"after" example:"2006-01-02T15:04:05+08:00"` // only list showtime after/equal this time
 }
 
 func (f *ShowtimeFilter) Validate() error {
@@ -16,8 +16,8 @@ func (f *ShowtimeFilter) Validate() error {
 type ShowtimeInput struct {
 	MovieID int64     `json:"movie_id,omitempty"`
 	RoomID  int64     `json:"room_id,omitempty"`
-	StartAt time.Time `json:"start_at,omitempty"`
-	EndAt   time.Time `json:"end_at,omitempty"`
+	StartAt time.Time `json:"start_at,omitempty" example:"2006-01-02T15:04:05+08:00"`
+	EndAt   time.Time `json:"end_at,omitempty" example:"2006-01-02T15:05:05+08:00"`
 	Price   int64     `json:"price,omitempty"`
 }
 

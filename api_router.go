@@ -18,8 +18,10 @@ func Route(e *echo.Echo, config *Config, handler *HandlerRegistry) {
 
 		public.GET("/showtimes/:id", handler.Showtime.GetByID)
 		public.GET("/showtimes/:id/seats", handler.Showtime.GetShowtimeSeatByID)
+		public.POST("/showtimes/filter", handler.Showtime.Pagination)
 		public.GET("/showtimes", handler.Showtime.Pagination)
 
+		public.POST("/rooms/filter", handler.Room.Pagination)
 		public.GET("/rooms", handler.Room.Pagination)
 		public.GET("/rooms/:id", handler.Room.GetByID)
 		public.GET("/rooms/:id/seats", handler.Room.ListSeats)
@@ -31,12 +33,14 @@ func Route(e *echo.Echo, config *Config, handler *HandlerRegistry) {
 
 		loggedIn.GET("/carts/:id", handler.Cart.UserGetByID)
 		loggedIn.GET("/carts", handler.Cart.UserGetPagination)
+		loggedIn.POST("/carts/filter", handler.Cart.UserGetPagination)
 		loggedIn.POST("/carts", handler.Cart.UserCreate)
 		loggedIn.PUT("/carts/:id", handler.Cart.UserUpdateByID)
 		loggedIn.DELETE("/carts/:id", handler.Cart.UserDeleteByID)
 
 		loggedIn.GET("/reservations/:id", handler.Reservation.UserGetByID)
 		loggedIn.GET("/reservations", handler.Reservation.UserGetPagination)
+		loggedIn.POST("/reservations/filter", handler.Reservation.UserGetPagination)
 		loggedIn.POST("/reservations", handler.Reservation.UserCreate)
 		loggedIn.PUT("/reservations/:id/pay", handler.Reservation.Pay)
 		loggedIn.PUT("/reservations/:id/cancel", handler.Reservation.Cancel)

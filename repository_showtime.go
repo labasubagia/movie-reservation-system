@@ -92,6 +92,7 @@ func (r *ShowtimeRepository) FindOne(ctx context.Context, filter ShowtimeFilter)
 func (r *ShowtimeRepository) Find(ctx context.Context, filter ShowtimeFilter) ([]Showtime, error) {
 	filterSQL, filterArgs := r.getFilterSQL(ctx, filter)
 
+	// TODO: fix this query
 	sql := fmt.Sprintf(
 		`
 			select
@@ -102,16 +103,23 @@ func (r *ShowtimeRepository) Find(ctx context.Context, filter ShowtimeFilter) ([
 				s.end_at,
 				s.price,
 				s.created_at,
-				s.updated_at
+				s.updated_at,
+				m.title as movie_title,
+				r.name as room_name,
+				count(st.*) as total_seat,
+				count(st.*)-count(rv.*) as available_seat
 			from
-				public.showtimes s
-			join public.movies m on
+				showtimes s
+			join movies m on
 				m.id = s.movie_id
-			where
-				s.id in (%s)
-			order by
-				s.start_at asc,
-				m.title asc
+			join rooms r on
+				r.id = s.room_id
+			left join seats st on st.room_id  = r.id
+			left join reservation_items rvi on rvi.showtime_id = s.id and rvi.seat_id = st.id
+			left join reservations rv on rv.id = rvi.reservation_id and rv.status != 'cancelled'
+			where s.id in (%s)
+			group by s.id, m.title , r."name"
+			order BY s.start_at asc, m.title asc
 		`,
 		filterSQL,
 	)
@@ -133,6 +141,10 @@ func (r *ShowtimeRepository) Find(ctx context.Context, filter ShowtimeFilter) ([
 			&showtime.Price,
 			&showtime.CreatedAt,
 			&showtime.UpdatedAt,
+			&showtime.MovieTitle,
+			&showtime.RoomName,
+			&showtime.TotalSeat,
+			&showtime.AvailableSeat,
 		)
 		if err != nil {
 			return nil, NewSQLErr(err)
@@ -166,6 +178,7 @@ func (r *ShowtimeRepository) Pagination(ctx context.Context, filter ShowtimeFilt
 		p.CurrentPage = page.Page
 	}
 
+	// TODO: fix this query
 	sql = fmt.Sprintf(
 		`
 			select

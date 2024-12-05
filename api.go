@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"os/signal"
 	"syscall"
@@ -13,20 +12,30 @@ import (
 	echoSwagger "github.com/swaggo/echo-swagger"
 	"golang.org/x/time/rate"
 
-	_ "movie-reservation-system/docs"
+	"github.com/labasubagia/movie-reservation-system/docs"
+	_ "github.com/labasubagia/movie-reservation-system/docs"
 )
 
+// RunServer
+//
+//	@title			Movie Reservation System
+//	@version		1.0
+//	@description	This is API for movie reservation system.
+//	@BasePath		/api
 func RunServer(config *Config, handler *HandlerRegistry) error {
+	docs.SwaggerInfo.Host = config.ServerAddr()
+
 	e := setupServer(config, handler)
 	e.Use(middleware.CORS())
 	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(rate.Limit(5))))
 	e.Use(middleware.Secure())
+	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
 	go func() {
-		err := e.Start(fmt.Sprintf(":%d", config.ServerPort))
+		err := e.Start(config.ServerAddr())
 		if err != nil && err != http.ErrServerClosed {
 			e.Logger.Fatal("shutting down the server")
 		}
@@ -42,14 +51,8 @@ func RunServer(config *Config, handler *HandlerRegistry) error {
 	return nil
 }
 
-//	@title			Movie Reservation System
-//	@version		1.0
-//	@description	This is API for movie reservation system.
-//	@host			http://localhost:8000
-//	@BasePath		/api
 func setupServer(config *Config, handler *HandlerRegistry) *echo.Echo {
 	e := echo.New()
-	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
 	e.HTTPErrorHandler = func(err error, c echo.Context) {
 		NewAPIErr(c, err)

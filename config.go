@@ -1,11 +1,13 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"strconv"
 )
 
 type Config struct {
+	ServerHost string
 	ServerPort int
 
 	JWTSecret string
@@ -17,8 +19,24 @@ type Config struct {
 	PostgresDB       string
 }
 
+func (c *Config) ServerAddr() string {
+	return fmt.Sprintf("%s:%d", c.ServerHost, c.ServerPort)
+}
+
+func (c *Config) PostgresDSN() string {
+	return fmt.Sprintf(
+		"postgres://%s:%s@%s:%d/%s",
+		c.PostgresUser,
+		c.PostgresPassword,
+		c.PostgresHost,
+		c.PostgresPort,
+		c.PostgresDB,
+	)
+}
+
 func NewConfig() *Config {
 	c := Config{
+		ServerHost: "localhost",
 		ServerPort: 8000,
 
 		JWTSecret: "secret",

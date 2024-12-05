@@ -107,7 +107,7 @@ type Movie struct {
 func (m *Movie) ValidateDuration(startAt, endAt time.Time) error {
 	duration := endAt.Sub(startAt).Minutes()
 	if duration < float64(m.Duration) {
-		return NewErr(ErrInput, nil, "showtime duration less than movie duration")
+		return NewErr(ErrInput, nil, "showtime duration less than movie duration, minimum %d minutes", m.Duration)
 	}
 	return nil
 }

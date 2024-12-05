@@ -92,9 +92,32 @@ func (r *ShowtimeRepository) FindOne(ctx context.Context, filter ShowtimeFilter)
 func (r *ShowtimeRepository) Find(ctx context.Context, filter ShowtimeFilter) ([]Showtime, error) {
 	filterSQL, filterArgs := r.getFilterSQL(ctx, filter)
 
-	// TODO: fix this query
 	sql := fmt.Sprintf(
 		`
+			with reserved_count as (
+				select
+					ri.showtime_id,
+					count(ri.*) as total
+				from
+					reservation_items ri
+				join reservations r on
+					ri.reservation_id = r.id
+				where
+					r.status = 'paid'::reservation_status
+					or (r.status = 'unpaid'::reservation_status
+						and r.created_at > now() - interval '30 minutes')
+				group by
+					ri.showtime_id
+			),
+			seat_count as (
+				select
+					room_id,
+					count(*) as total
+				from
+					seats
+				group by
+					room_id
+			)
 			select
 				s.id,
 				s.movie_id,
@@ -106,20 +129,22 @@ func (r *ShowtimeRepository) Find(ctx context.Context, filter ShowtimeFilter) ([
 				s.updated_at,
 				m.title as movie_title,
 				r.name as room_name,
-				count(st.*) as total_seat,
-				count(st.*)-count(rv.*) as available_seat
+				coalesce(sc.total, 0) as total_seat,
+				coalesce(sc.total, 0) - coalesce(rc.total, 0) as available_seat
 			from
 				showtimes s
+			left join reserved_count rc on
+				s.id = rc.showtime_id
+			left join seat_count sc on
+				sc.room_id = s.room_id
 			join movies m on
 				m.id = s.movie_id
 			join rooms r on
 				r.id = s.room_id
-			left join seats st on st.room_id  = r.id
-			left join reservation_items rvi on rvi.showtime_id = s.id and rvi.seat_id = st.id
-			left join reservations rv on rv.id = rvi.reservation_id and rv.status != 'cancelled'
 			where s.id in (%s)
-			group by s.id, m.title , r."name"
-			order BY s.start_at asc, m.title asc
+			order by
+				s.start_at asc,
+				m.title asc
 		`,
 		filterSQL,
 	)
@@ -178,9 +203,32 @@ func (r *ShowtimeRepository) Pagination(ctx context.Context, filter ShowtimeFilt
 		p.CurrentPage = page.Page
 	}
 
-	// TODO: fix this query
 	sql = fmt.Sprintf(
 		`
+			with reserved_count as (
+				select
+					ri.showtime_id,
+					count(ri.*) as total
+				from
+					reservation_items ri
+				join reservations r on
+					ri.reservation_id = r.id
+				where
+					r.status = 'paid'::reservation_status
+					or (r.status = 'unpaid'::reservation_status
+						and r.created_at > now() - interval '30 minutes')
+				group by
+					ri.showtime_id
+			),
+			seat_count as (
+				select
+					room_id,
+					count(*) as total
+				from
+					seats
+				group by
+					room_id
+			)
 			select
 				s.id,
 				s.movie_id,
@@ -192,20 +240,22 @@ func (r *ShowtimeRepository) Pagination(ctx context.Context, filter ShowtimeFilt
 				s.updated_at,
 				m.title as movie_title,
 				r.name as room_name,
-				count(st.*) as total_seat,
-				count(st.*)-count(rv.*) as available_seat
+				coalesce(sc.total, 0) as total_seat,
+				coalesce(sc.total, 0) - coalesce(rc.total, 0) as available_seat
 			from
 				showtimes s
+			left join reserved_count rc on
+				s.id = rc.showtime_id
+			left join seat_count sc on
+				sc.room_id = s.room_id
 			join movies m on
 				m.id = s.movie_id
 			join rooms r on
 				r.id = s.room_id
-			left join seats st on st.room_id  = r.id
-			left join reservation_items rvi on rvi.showtime_id = s.id and rvi.seat_id = st.id
-			left join reservations rv on rv.id = rvi.reservation_id and rv.status != 'cancelled'
 			where s.id in (%s)
-			group by s.id, m.title , r."name"
-			order BY s.start_at asc, m.title asc
+			order by
+				s.start_at asc,
+				m.title asc
 			limit @page_size offset (@page - 1) * @page_size;
 		`,
 		filterSQL,
@@ -301,16 +351,16 @@ func (r *ShowtimeRepository) getFilterSQL(_ context.Context, filter ShowtimeFilt
 func (r *ShowtimeRepository) GetShowtimeSeats(ctx context.Context, showtimeID int64) ([]Seat, error) {
 	sql := `
 		with reserved_seat as (
-		select
-			ri.*
-		from
-			reservation_items ri
-		join reservations r on
-			ri.reservation_id = r.id
-		where
-			r.status = 'paid'::reservation_status
-			or (r.status = 'unpaid'::reservation_status
-				and r.created_at > now() - interval '30 minutes')
+			select
+				ri.*
+			from
+				reservation_items ri
+			join reservations r on
+				ri.reservation_id = r.id
+			where
+				r.status = 'paid'::reservation_status
+				or (r.status = 'unpaid'::reservation_status
+					and r.created_at > now() - interval '30 minutes')
 		)
 		select
 			st.id as seat_id,

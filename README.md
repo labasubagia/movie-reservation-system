@@ -9,7 +9,7 @@ This is the Backend API Movie Reservation System. It is an application designed 
 
 This project is based on [roadmap.sh](https://roadmap.sh/projects/movie-reservation-system).
 
-Visit the [Project Wiki] (https://github.com/labasubagia/movie-reservation-system/wiki) for detailed information, such as the user manual, architecture, technical details, etc.
+Visit the [Project Wiki](https://github.com/labasubagia/movie-reservation-system/wiki) for detailed information, such as the user manual, architecture, technical details, etc.
 
 ## Installation
 
